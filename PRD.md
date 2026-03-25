@@ -12,7 +12,7 @@ Als sr. consultant/docent in het F-cluster (simulatie adviesbureau "The Giraffe 
 
 ### Datamodel
 Groepen, teams en studenten zijn genormaliseerde entiteiten:
-- **Groep**: naam, 1-2 assessoren (senior 1/2), datum (date picker) en start-/eindtijd (time picker)
+- **Groep**: naam, 1-2 assessoren (senior 1/2), datum (date picker), start-/eindtijd (time picker), slotduur (veelvouden van 15 min, default 30) en pauzes
 - **Team**: teamnummer, gekoppeld aan een groep
 - **Student**: naam, gekoppeld aan een groep en een team
 
@@ -39,11 +39,14 @@ Groepen, teams en studenten worden beheerd via de **Studenten**-view of via CSV-
 
 #### Kalenderoverzicht (hoofdweergave dashboard)
 - Dagweergave per assessmentdag (di 7 apr, vr 10 apr) naast elkaar als kolommen
-- Verticale as: tijdslots van 30 minuten (09:00, 09:30, 10:00, ... t/m 14:30), gebaseerd op gespreksduur 20 min + 10 min feedback = 30 min per team
+- Verticale as: tijdslots dynamisch gegenereerd per groep op basis van start-/eindtijd en slotduur (configureerbaar per groep, default 30 min, veelvouden van 15 min)
 - Elk team wordt als kaart/blok weergegeven in een tijdslot met: teamnummer, namen studenten, beoordelingsstatus (kleurindicatie)
 - **Drag & drop**: teams kunnen versleept worden naar een ander tijdslot binnen dezelfde dag om de volgorde aan te passen. Volgorde wordt opgeslagen in localStorage.
 - Klik op een teamblok om het assessment voor dat team te openen
-- Lege tijdslots tonen als beschikbaar (lichtgrijze achtergrond)
+- Lege tijdslots zijn klikbaar om een pauze toe te voegen (hover toont "+ pauze")
+- Pauze-slots worden getoond als oranje cellen met "Pauze" label en ✕ knop om te verwijderen
+- Nieuwe groepen krijgen een default pauze om 12:00; bestaande groepen worden niet verstoord
+- Tijdslots buiten het bereik van een groep worden als disabled (gearceerd) getoond
 - Visuele indicatie per teamblok:
   - Grijs: nog niet beoordeeld
   - Oranje: deels beoordeeld
@@ -58,7 +61,7 @@ Groepen, teams en studenten worden beheerd via de **Studenten**-view of via CSV-
 
 #### Import & databeheer
 - CSV-import voor deelnemersdata (herbruikbaar voor volgende cohorten) — parset automatisch groepen en teams uit CSV. Ondersteunt zowel komma als puntkomma als scheidingsteken (auto-detectie voor Nederlands Excel)
-- Automatische verdeling van teams over tijdslots bij import (elk team krijgt een volgend slot van 30 min)
+- Automatische verdeling van teams over tijdslots bij import (pauze-slots worden overgeslagen)
 - Voorbeelddata laden (3 demoteams) om de app uit te proberen
 - Volledige reset: wist alle data uit localStorage
 
