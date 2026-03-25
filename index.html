@@ -743,6 +743,9 @@ function loadState() {
 
 // ==================== CSV PARSER ====================
 function parseCSV(text) {
+  // Auto-detect delimiter: semicolon (NL Excel) or comma
+  const firstLine = text.split(/\r?\n/)[0] || '';
+  const sep = firstLine.includes(';') ? ';' : ',';
   const rows = [];
   let current = [], field = '', inQuotes = false;
   for (let i = 0; i < text.length; i++) {
@@ -754,7 +757,7 @@ function parseCSV(text) {
       } else { field += ch; }
     } else {
       if (ch === '"') { inQuotes = true; }
-      else if (ch === ',') { current.push(field.trim()); field = ''; }
+      else if (ch === sep) { current.push(field.trim()); field = ''; }
       else if (ch === '\n' || ch === '\r') {
         if (ch === '\r' && text[i+1] === '\n') i++;
         if (field.length > 0 || current.length > 0) { current.push(field.trim()); rows.push(current); current = []; field = ''; }
