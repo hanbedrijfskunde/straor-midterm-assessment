@@ -1,0 +1,7 @@
+# Student data en bronbestanden
+deelnemers.csv
+*.pdf
+ISSUES.md
+
+# OS
+.DS_Store
