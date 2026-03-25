@@ -8,21 +8,15 @@ Als sr. consultant/docent in het F-cluster (simulatie adviesbureau "The Giraffe 
 
 ---
 
-## Gegevens uit documenten
+## Gegevens
 
-### Deelnemers (uit deelnemers.csv)
-- **BKN-F01** (di 7 apr 09:00-14:30): 4 teams, assessoren Witek + Arthur
-  - Team 1: Maud, Lynn
-  - Team 2: Maria, Lennard
-  - Team 3: Amar, Aldin
-  - Team 4: Ivan, Baran
-- **BKN-F02** (vr 10 apr 09:00-14:30): 6 teams, assessoren Witek + Marlous
-  - Team 1: Chris, Tim
-  - Team 2: Siemen, Tijm
-  - Team 3: Donny, Nick
-  - Team 4: Jesse, Tim
-  - Team 5: Max, Maurice
-  - Team 6: Julius, Vincent
+### Datamodel
+Groepen, teams en studenten zijn genormaliseerde entiteiten:
+- **Groep**: naam, 1-2 assessoren (senior 1/2), datum (date picker) en start-/eindtijd (time picker)
+- **Team**: teamnummer, gekoppeld aan een groep
+- **Student**: naam, gekoppeld aan een groep en een team
+
+Groepen, teams en studenten worden beheerd via de **Studenten**-view of via CSV-import. De app start standaard leeg; via **Databeheer** kan voorbeelddata worden geladen.
 
 ### 6 Beoordelingscriteria (elk 1-4 punten)
 1. **Veranderen en evalueren** - demonstreert uitleg theoretisch concept uit veranderen/evalueren fase
@@ -56,9 +50,17 @@ Als sr. consultant/docent in het F-cluster (simulatie adviesbureau "The Giraffe 
   - Groen: volledig beoordeeld
 - Onder de kalender: assessoren per dag en totaalvoortgang
 
-#### Overige planning
-- CSV-import voor deelnemersdata (herbruikbaar voor volgende cohorten)
+#### Beheer (Studenten-view)
+- Groepen toevoegen/bewerken/verwijderen met naam, assessoren, datum en tijden
+- Teams toevoegen/verwijderen per groep (bulk: meerdere teams tegelijk aanmaken)
+- Studenten toevoegen/bewerken/verwijderen met koppeling aan groep en team via dropdowns
+- Cascade-verwijdering: groep verwijderen wist ook teams en studenten met data
+
+#### Import & databeheer
+- CSV-import voor deelnemersdata (herbruikbaar voor volgende cohorten) — parset automatisch groepen en teams uit CSV
 - Automatische verdeling van teams over tijdslots bij import (elk team krijgt een volgend slot van 30 min)
+- Voorbeelddata laden (3 demoteams) om de app uit te proberen
+- Volledige reset: wist alle data uit localStorage
 
 ### 2. Dataverzameling tijdens assessment
 **Dit is de kritieke fase - UX moet geoptimaliseerd zijn voor minimale afleiding.**
@@ -73,17 +75,20 @@ Als sr. consultant/docent in het F-cluster (simulatie adviesbureau "The Giraffe 
   - Observatie-chips: voorgedefinieerde tags die je kunt klikken (geen typen nodig)
   - Optioneel: inklapbaar vrij tekstveld voor uitzonderlijke observaties
 
-#### Voorgedefinieerde observatie-tags per criterium:
-1. **Veranderen en evalueren**: `helder uitgelegd` `theorie correct` `goed voorbeeld` `te oppervlakkig` `geen theorie` `verband met praktijk`
-2. **Communicatie**: `actief luisteren` `helder verwoord` `professionele toon` `afwachtend` `onderbreekt` `goede vragen`
-3. **Schakelen en verbinden**: `weerstand herkend` `creatieve oplossing` `draagvlak gecreeerd` `empathisch` `te confronterend` `stakeholders betrokken`
-4. **Professionaliseren (bijdrage)**: `duidelijke bijdrage` `initiatief getoond` `groei zichtbaar` `reflectief` `passief` `samenwerking sterk`
-5. **Professionaliseren (intercultureel)**: `issue benoemd` `goed omgegaan` `geleerd van` `oppervlakkig` `geen voorbeeld` `bewust van impact`
-6. **Handelen vanuit waarden**: `dilemma helder` `OOA verwezen` `genuanceerd` `eigen positie` `te zwart-wit` `ethisch bewust`
+#### Observatie-tags per criterium en niveau:
+Tags zijn gegroepeerd per scoreniveau (Onder/Op/Boven/Excellent) met bijbehorende kleurcodes. Per criterium zijn er 3-4 tags per niveau.
 
-#### Snel-notitie mogelijkheden:
-- Tab-toets of knoppen om tussen studenten te wisselen
-- Optioneel tekstveld per criterium (standaard ingeklapt, uitklappen met klik)
+**Interactie (drag-to-notes)**:
+- Tags staan als kleurgecodeerde chips boven de notitievelden
+- **Klik** op tag → picker popup met studentnamen → tag wordt in het notitieveld van die student geplaatst als `✓ tag-tekst`
+- **Sleep** tag naar notitieveld → tag wordt ingevoegd
+- Gebruikte tags tonen initiaal-badges van toegewezen student(en)
+- Tags worden opgeslagen als onderdeel van notities (geen apart tag-state)
+
+#### Notitievelden:
+- Per student per criterium een auto-groeiend tekstveld
+- Vrije tekst en tag-regels (✓ prefix) worden gecombineerd
+- In de feedback-view worden tags en vrije tekst apart getoond
 - Alles auto-saved naar localStorage
 
 ### 3. Verwerking (na afloop)
@@ -131,21 +136,28 @@ Als sr. consultant/docent in het F-cluster (simulatie adviesbureau "The Giraffe 
 
 ## Schermen / Views
 
-1. **Dashboard** - overzicht dagen, teams, voortgang
+1. **Overzicht** (Dashboard) - kalenderoverzicht per assessmentdag, teams, voortgang
 2. **Assessment** - de kernview tijdens gesprekken (minimal UI)
 3. **Resultaten** - overzicht scores, cijfers, vlaggen
 4. **Feedback** - per-student rapport genereren/bekijken
-5. **Exporteren** - data exporteren in diverse formaten, CSV import, backup/restore
+5. **Studenten** - beheer van groepen, teams en studenten (toevoegen, bewerken, verwijderen)
+6. **Databeheer** - CSV/JSON export, JSON backup/restore, voorbeelddata laden, volledige reset
 
 ---
 
 ## Verificatie / Testen
 
-1. Open `index.html` in browser (studentendata is voorgeladen)
-2. Controleer of alle studenten en teams correct worden weergegeven op het dashboard
-3. Klik op een team en score alle 6 criteria voor beide studenten
-4. Controleer automatische cijferberekening en zak/slaag logica
-5. Ga naar Feedback, selecteer een student, en controleer het rapport
-6. Exporteer CSV en controleer correctheid
-7. Sluit browser, heropen - check of data bewaard is gebleven (localStorage)
-8. Test duo-score toggle: stel een criterium in als duo-score en check dat beide studenten dezelfde score krijgen
+1. Open `index.html` in browser (start leeg, of laad voorbeelddata via Databeheer)
+2. Maak een groep aan met assessoren, datum en tijden
+3. Voeg teams toe (bulk mogelijk) en studenten per team
+4. Controleer of het kalenderoverzicht correct wordt getoond
+5. Klik op een team en score alle 6 criteria voor beide studenten
+6. Test observatie-tags: klik op een tag, wijs toe aan student, verifieer badge op chip
+7. Test drag-to-notes: sleep een tag naar het notitieveld
+8. Controleer automatische cijferberekening en zak/slaag logica
+9. Ga naar Feedback, selecteer een student, en controleer het rapport (tags en vrije tekst apart)
+10. Exporteer CSV en controleer correctheid
+11. Test JSON backup, volledige reset, en JSON restore
+12. Sluit browser, heropen - check of data bewaard is gebleven (localStorage)
+13. Test duo-score toggle: stel een criterium in als duo-score en check dat beide studenten dezelfde score krijgen
+14. Test CSV-import: importeer een bestand en verifieer dat groepen, teams en datum/tijden correct worden aangemaakt

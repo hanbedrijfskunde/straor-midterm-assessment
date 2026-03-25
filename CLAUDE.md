@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-PROMEF Assessment Tool — a single-file browser app (`index.html`) for conducting and scoring HBO-BK change management (verandermanagement) assessments. Used by a teacher ("sr. consultant") to score student duo-presentations across two assessment days.
+PROMEF Assessment Tool — a single-file browser app (`index.html`) for conducting and scoring HBO-BK change management (verandermanagement) assessments. Used by a teacher ("sr. consultant") to score student duo-presentations. Groups, teams and students are configurable via the UI or CSV import.
 
 All UI text and domain terminology is in **Dutch**.
 
@@ -16,24 +16,44 @@ Open `index.html` directly in a browser. No build step, no server, no dependenci
 
 Everything lives in one `index.html` file with inline `<style>` and `<script>` sections:
 
-- **CSS** (lines ~7–190): CSS custom properties for theming (light/dark), component styles. Score levels use `--score1` through `--score4` color variables.
-- **HTML** (lines ~190–230): Static shell with 5 view sections (`view-dashboard`, `view-assessment`, `view-results`, `view-feedback`, `view-export`) and an import modal. Views are toggled via `.active` class.
-- **JS** (lines ~230–end): Vanilla JS, no frameworks. Key sections:
-  - `CRITERIA` array: the 6 assessment criteria with observation tags
-  - `DEFAULT_STUDENTS` array: hardcoded student data (20 students, 10 teams)
-  - State management: single `state` object with `students`, `scores`, `tags`, `notes`, `duoMode`
+- **CSS** (lines ~7–200): CSS custom properties for theming, component styles. Score levels use `--score1` through `--score4` color variables.
+- **HTML** (lines ~230–370): Static shell with 6 view sections (`view-dashboard`, `view-assessment`, `view-results`, `view-feedback`, `view-students`, `view-export`) plus modals for group/team/student management and CSV import. Views are toggled via `.active` class.
+- **JS** (lines ~370–end): Vanilla JS, no frameworks. Key sections:
+  - `CRITERIA` array: 6 assessment criteria with level-based observation tags (level 1–4)
+  - Normalized data model: `state.groups`, `state.teams`, `state.students` as separate entities
+  - `DEFAULT_GROUPS/TEAMS/STUDENTS` (empty) and `DEMO_GROUPS/TEAMS/STUDENTS` for test data
+  - Helper functions: `getGroup()`, `getTeamById()`, `getGroupTeams()`, `buildGroupsLookup()`, `formatGroupDatetime()`, `parseDatetimeString()`
+  - State management: single `state` object with `groups`, `teams`, `students`, `scores`, `notes`, `duoMode`, `slots`
+  - Migration: `migrateState()` auto-converts old denormalized student format
   - Persistence: `localStorage` under key `promef_state`, auto-saved on every change
-  - Render functions: `renderDashboard()`, `renderAssessment()`, `renderResults()`, `renderFeedback()`, `renderExport()` — each writes innerHTML of its view section
+  - Tag system: drag-to-notes — tags are inserted as `✓ tag-text` lines in per-student notes, with click-picker and drag-drop support
+  - Render functions: `renderDashboard()`, `renderAssessment()`, `renderResults()`, `renderFeedback()`, `renderStudents()`, `renderExport()` — each writes innerHTML of its view section
   - Navigation: `showView(viewName)` toggles views and calls the corresponding render function
+
+## Data model
+
+```
+state.groups:   [{ id, name, senior1, senior2, date, startTime, endTime }]
+state.teams:    [{ id, groupId, num }]
+state.students: [{ id, name, groupId, teamId }]
+state.scores:   { studentId: { critId: 1-4 } }
+state.notes:    { studentId: { critId: "text with ✓ tag lines" } }
+state.duoMode:  { teamKey: { critId: bool } }
+state.slots:    { teamKey: "HH:MM" }
+```
+
+- **Group ID** = group name string (e.g. "BKN-F01")
+- **Team ID** = `teamKey(groupId, num)` = `"BKN-F01-1"`
+- Tags are stored as `✓ ` prefixed lines within `state.notes` (no separate tag state)
 
 ## Key domain concepts
 
 - **6 criteria** scored 1–4 (Onder/Op/Boven/Excellent). All must be ≥2 ("Op niveau") to pass.
 - **Grade scale**: total points (6–24) mapped to grades 4–10 via `calculateGrade()`.
 - **Duo-mode**: per criterion toggle — when enabled, both team members share one score.
-- **Observation tags**: predefined clickable chips per criterion (positive/negative), stored per team.
-- **Notes**: free text per student per criterion.
-- **Two groups**: BKN-F01 (4 teams, di 7 apr) and BKN-F02 (6 teams, vr 10 apr).
+- **Observation tags**: level-based chips (1=Onder red, 2=Op orange, 3=Boven green, 4=Excellent purple). Click to assign to a student via picker popup, or drag onto a student's note field.
+- **Notes**: free text per student per criterion, with tag lines (✓ prefix) auto-parsed for feedback display.
+- **Groups**: user-defined, each with name, assessors, date (calendar picker), start/end time.
 
 ## Constraints
 
