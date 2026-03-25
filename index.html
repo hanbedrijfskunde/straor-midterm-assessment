@@ -51,6 +51,9 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
 .cal-time-label { display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); border-top: 1px solid var(--border); }
 .cal-slot { border-top: 1px solid var(--border); border-left: 1px solid var(--border); padding: 3px; background: var(--bg); transition: background 0.15s; }
 .cal-slot.drag-over { background: var(--primary-light); }
+.cal-slot-empty { cursor: pointer; }
+.cal-slot-empty:hover { background: var(--score2-bg); }
+.cal-slot-empty:hover::after { content: '+ pauze'; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 0.75rem; color: var(--score2-text); font-weight: 500; }
 .cal-slot-disabled { border-top: 1px solid var(--border); border-left: 1px solid var(--border); background: repeating-linear-gradient(135deg, var(--bg), var(--bg) 4px, transparent 4px, transparent 8px); }
 .cal-slot-pause { border-top: 1px solid var(--border); border-left: 1px solid var(--border); background: var(--score2-bg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; position: relative; }
 .cal-pause-label { font-size: 0.8rem; font-weight: 600; color: var(--score2-text); }
@@ -957,10 +960,12 @@ function renderDashboard() {
         return state.slots[tk] === slot;
       });
 
-      html += `<div class="cal-slot" data-group="${gName}" data-slot="${slot}"
+      const safeG = gName.replace(/'/g, "\\'");
+      html += `<div class="cal-slot ${teamInSlot === undefined ? 'cal-slot-empty' : ''}" data-group="${gName}" data-slot="${slot}"
         ondragover="event.preventDefault(); this.classList.add('drag-over')"
         ondragleave="this.classList.remove('drag-over')"
-        ondrop="dropTeam(event, this)">`;
+        ondrop="dropTeam(event, this)"
+        ${teamInSlot === undefined ? `onclick="addBreak('${safeG}', '${slot}')" title="Klik om pauze toe te voegen"` : ''}>`;
 
       if (teamInSlot !== undefined) {
         const students = g.teams[teamInSlot];
@@ -996,6 +1001,16 @@ function endDrag(e) {
   e.target.classList.remove('dragging');
   dragData = null;
   document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+function addBreak(groupId, slot) {
+  const g = getGroup(groupId);
+  if (g) {
+    if (!g.breaks) g.breaks = [];
+    if (!g.breaks.includes(slot)) g.breaks.push(slot);
+    saveState();
+    renderDashboard();
+  }
 }
 
 function removeBreak(groupId, slot) {
