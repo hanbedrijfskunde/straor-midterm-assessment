@@ -326,11 +326,15 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
     <div class="form-row">
       <div class="form-group" style="flex:2">
         <label>Groep</label>
-        <select id="teamGroupSelect"></select>
+        <select id="teamGroupSelect" onchange="updateTeamNumSuggestion()"></select>
       </div>
       <div class="form-group" style="flex:1">
-        <label>Teamnummer</label>
+        <label>Vanaf nr</label>
         <input type="number" id="teamNum" min="1" placeholder="Nr">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Aantal</label>
+        <input type="number" id="teamCount" min="1" value="1">
       </div>
     </div>
     <div class="modal-actions">
@@ -1387,20 +1391,26 @@ function deleteGroup(groupId) {
 // ---- Team CRUD ----
 let editingTeamId = null;
 
+function updateTeamNumSuggestion() {
+  const gId = document.getElementById('teamGroupSelect').value;
+  const existing = getGroupTeams(gId);
+  document.getElementById('teamNum').value = existing.length > 0 ? Math.max(...existing.map(t => t.num)) + 1 : 1;
+}
+
 function showTeamModal(teamId, preselectedGroupId) {
   editingTeamId = teamId || null;
-  document.getElementById('teamModalTitle').textContent = editingTeamId ? 'Team bewerken' : 'Team toevoegen';
+  document.getElementById('teamModalTitle').textContent = editingTeamId ? 'Team bewerken' : 'Teams toevoegen';
   const sel = document.getElementById('teamGroupSelect');
   sel.innerHTML = state.groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  document.getElementById('teamCount').value = 1;
   if (editingTeamId) {
     const t = getTeamById(editingTeamId);
     if (t) { sel.value = t.groupId; document.getElementById('teamNum').value = t.num; }
+    document.getElementById('teamCount').parentElement.style.display = 'none';
   } else {
     if (preselectedGroupId) sel.value = preselectedGroupId;
-    // Suggest next team number
-    const gId = sel.value;
-    const existing = getGroupTeams(gId);
-    document.getElementById('teamNum').value = existing.length > 0 ? Math.max(...existing.map(t => t.num)) + 1 : 1;
+    document.getElementById('teamCount').parentElement.style.display = '';
+    updateTeamNumSuggestion();
   }
   document.getElementById('teamModal').classList.add('open');
 }
@@ -1408,15 +1418,22 @@ function closeTeamModal() { document.getElementById('teamModal').classList.remov
 
 function saveTeam() {
   const groupId = document.getElementById('teamGroupSelect').value;
-  const num = parseInt(document.getElementById('teamNum').value);
-  if (!groupId || !num) { alert('Selecteer een groep en vul een teamnummer in.'); return; }
-  const tk = teamKey(groupId, num);
-  if (!editingTeamId && state.teams.find(t => t.id === tk)) { alert('Dit team bestaat al.'); return; }
+  const startNum = parseInt(document.getElementById('teamNum').value);
+  const count = parseInt(document.getElementById('teamCount').value) || 1;
+  if (!groupId || !startNum) { alert('Selecteer een groep en vul een teamnummer in.'); return; }
+
   if (editingTeamId) {
+    const tk = teamKey(groupId, startNum);
     const t = getTeamById(editingTeamId);
-    if (t) { t.groupId = groupId; t.num = num; t.id = tk; }
+    if (t) { t.groupId = groupId; t.num = startNum; t.id = tk; }
   } else {
-    state.teams.push({ id: tk, groupId, num });
+    for (let i = 0; i < count; i++) {
+      const num = startNum + i;
+      const tk = teamKey(groupId, num);
+      if (!state.teams.find(t => t.id === tk)) {
+        state.teams.push({ id: tk, groupId, num });
+      }
+    }
   }
   assignDefaultSlots();
   saveState();
