@@ -548,7 +548,7 @@ function setScore(studentId, critId, level) {
 function isTagInNote(studentId, critId, tagText) {
   const note = getNote(studentId, critId);
   if (!note) return false;
-  return note.split('\n').some(line => line.trim() === '\u2713 ' + tagText);
+  return note.includes('\u2713 ' + tagText);
 }
 
 function getTagAssignees(critId, tagText) {
@@ -558,10 +558,10 @@ function getTagAssignees(critId, tagText) {
 
 function insertTagInNote(studentId, critId, tagText) {
   if (isTagInNote(studentId, critId, tagText)) {
-    // Toggle off: remove from notes
+    // Toggle off: remove marker from notes, keep surrounding text
     const note = getNote(studentId, critId);
-    const lines = note.split('\n').filter(l => l.trim() !== '\u2713 ' + tagText);
-    setNote(studentId, critId, lines.join('\n').replace(/^\n+|\n+$/g, ''));
+    const cleaned = note.replace('\u2713 ' + tagText, '').replace(/\n{2,}/g, '\n').replace(/^\n+|\n+$/g, '');
+    setNote(studentId, critId, cleaned);
   } else {
     // Toggle on: append to notes
     const current = getNote(studentId, critId);
@@ -1827,7 +1827,7 @@ function renderGuide() {
   <li><strong>Slepen:</strong> Sleep een tag naar het notitieveld van de student.</li>
 </ol>
 <p>De tag verschijnt als regel in het notitieveld. Je kunt er direct tekst achter typen als toelichting. Op de tag zelf verschijnt de <strong>initiaal</strong> van de student als badge.</p>
-<p>Je kunt ook vrije tekst typen in het notitieveld zonder een tag te gebruiken.</p>
+<p>Je kunt ook vrije tekst typen in het notitieveld zonder een tag te gebruiken of combinaties.</p>
 
 <h3>Stap 8: Navigeren tussen teams</h3>
 <ol>
