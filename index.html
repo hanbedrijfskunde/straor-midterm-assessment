@@ -202,6 +202,22 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
 .btn-action:hover { background: var(--bg); color: var(--text); border-color: var(--text-muted); }
 .btn-action-danger:hover { background: var(--score1); color: white; border-color: var(--score1); }
 
+/* ==================== GUIDE ==================== */
+.guide { max-width: 800px; }
+.guide h2 { font-size: 1.2rem; color: var(--primary); margin: 2rem 0 0.75rem; padding-bottom: 0.35rem; border-bottom: 2px solid var(--primary-light); }
+.guide h2:first-child { margin-top: 0; }
+.guide h3 { font-size: 1rem; margin: 1.25rem 0 0.5rem; }
+.guide p, .guide li { font-size: 0.92rem; line-height: 1.7; color: var(--text); }
+.guide ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+.guide ol li { margin-bottom: 0.5rem; }
+.guide .guide-tip { background: var(--primary-light); border-left: 3px solid var(--primary); padding: 0.75rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; margin: 0.75rem 0; font-size: 0.88rem; }
+.guide .guide-warn { background: var(--score2-bg); border-left: 3px solid var(--score2); padding: 0.75rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; margin: 0.75rem 0; font-size: 0.88rem; }
+.guide .guide-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; font-size: 0.88rem; }
+.guide .guide-table th, .guide .guide-table td { border: 1px solid var(--border); padding: 0.4rem 0.6rem; text-align: left; }
+.guide .guide-table th { background: var(--bg); font-weight: 600; }
+.guide .guide-table td:first-child { font-weight: 500; }
+.guide code { background: var(--bg); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.85em; }
+
 /* ==================== PRINT TABLE (hidden on screen) ==================== */
 #calendarPrintArea { display: none; }
 
@@ -247,6 +263,7 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
   <button class="tab" data-view="feedback">Feedback</button>
   <button class="tab" data-view="students">Studenten</button>
   <button class="tab" data-view="export">Databeheer</button>
+  <button class="tab" data-view="guide">Handleiding</button>
   <span class="spacer"></span>
   <div class="nav-actions">
     <button class="btn btn-outline" onclick="openImportModal()" title="CSV importeren">Importeer CSV</button>
@@ -260,6 +277,7 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
   <section id="view-feedback" class="view"></section>
   <section id="view-students" class="view"></section>
   <section id="view-export" class="view"></section>
+  <section id="view-guide" class="view"></section>
 </main>
 
 <div id="calendarPrintArea"></div>
@@ -791,6 +809,7 @@ function showView(view) {
   else if (view === 'feedback') renderFeedback();
   else if (view === 'students') renderStudents();
   else if (view === 'export') renderExport();
+  else if (view === 'guide') renderGuide();
 }
 
 document.querySelectorAll('nav .tab').forEach(tab => {
@@ -1713,6 +1732,155 @@ function doImport() {
     alert(`${students.length} studenten ge\u00efmporteerd.`);
   };
   reader.readAsText(fileInput.files[0]);
+}
+
+// ==================== GUIDE ====================
+function renderGuide() {
+  document.getElementById('view-guide').innerHTML = `<div class="guide">
+<h1>Handleiding PROMEF Assessment Tool</h1>
+<p>Deze handleiding beschrijft stap voor stap hoe je de tool gebruikt: van voorbereiding tot en met het opleveren van feedback en cijfers.</p>
+
+<h2>Fase 1: Voorbereiding (voor de assessmentdag)</h2>
+
+<h3>Stap 1: App openen</h3>
+<ol>
+  <li>Ga in je browser naar <a href="https://hanbedrijfskunde.github.io/straor-midterm-assessment/" target="_blank">hanbedrijfskunde.github.io/straor-midterm-assessment</a></li>
+  <li>De app werkt daarna volledig offline. Alle data blijft opgeslagen in je browser.</li>
+</ol>
+
+<h3>Stap 2: Deelnemerslijst maken in Excel</h3>
+<ol>
+  <li>Open een nieuw Excel-bestand.</li>
+  <li>Maak de volgende kolommen aan op de <strong>eerste rij</strong>:</li>
+</ol>
+<table class="guide-table">
+  <thead><tr><th>Naam</th><th>Groep</th><th>Team</th><th>Senior 1</th><th>Senior 2</th><th>Datumtijd</th></tr></thead>
+  <tbody>
+    <tr><td>Anna</td><td>BKN-F01</td><td>1</td><td>Witek</td><td>Arthur</td><td>di 7 apr 09:00-14:30</td></tr>
+    <tr><td>Bas</td><td>BKN-F01</td><td>1</td><td>Witek</td><td>Arthur</td><td>di 7 apr 09:00-14:30</td></tr>
+    <tr><td>Carmen</td><td>BKN-F01</td><td>2</td><td>Witek</td><td>Arthur</td><td>di 7 apr 09:00-14:30</td></tr>
+    <tr><td>Daan</td><td>BKN-F01</td><td>2</td><td>Witek</td><td>Arthur</td><td>di 7 apr 09:00-14:30</td></tr>
+  </tbody>
+</table>
+<ol start="3">
+  <li>Studenten in hetzelfde duo krijgen <strong>hetzelfde teamnummer</strong>.</li>
+  <li>Gebruik <strong>alleen voornamen</strong> (zie Privacy onderaan).</li>
+  <li>Sla het bestand op als CSV: <strong>Bestand</strong> &rarr; <strong>Opslaan als</strong> &rarr; kies als bestandstype <strong>"CSV (gescheiden door lijstscheidingsteken)"</strong>.</li>
+</ol>
+<div class="guide-tip"><strong>Tip:</strong> Alle studenten in dezelfde groep krijgen dezelfde assessoren en datumtijd. Je hoeft dit maar \xe9\xe9n keer in te vullen en dan naar beneden te kopi\xebren.</div>
+
+<h3>Stap 3: CSV importeren in de app</h3>
+<ol>
+  <li>Klik op <strong>Importeer CSV</strong> rechtsboven in de menubalk.</li>
+  <li>Klik op <strong>Bestand kiezen</strong> en selecteer je CSV-bestand.</li>
+  <li>Klik op <strong>Importeren</strong>.</li>
+  <li>Groepen, teams en studenten worden automatisch aangemaakt.</li>
+</ol>
+
+<h3>Alternatief: Handmatig invoeren</h3>
+<p>Je kunt ook zonder CSV-bestand werken:</p>
+<ol>
+  <li>Klik op <strong>Studenten</strong> in de menubalk.</li>
+  <li>Klik op <strong>+ Groep</strong>: vul groepsnaam, assessoren, datum en tijden in.</li>
+  <li>Klik op <strong>+ Team</strong>: kies de groep en het aantal teams.</li>
+  <li>Klik op <strong>+ Student</strong>: vul de naam in, kies groep en team.</li>
+</ol>
+
+<h3>Stap 4: Planning controleren</h3>
+<ol>
+  <li>Ga naar <strong>Overzicht</strong> in de menubalk.</li>
+  <li>Je ziet een kalender met alle groepen en teams in tijdslots van 30 minuten.</li>
+  <li>Controleer of alle teams in de juiste volgorde staan.</li>
+  <li>Wil je de volgorde aanpassen? <strong>Sleep</strong> een team naar een ander tijdslot.</li>
+</ol>
+
+<h2>Fase 2: Assessment (tijdens de gesprekken)</h2>
+
+<h3>Stap 5: Team openen</h3>
+<ol>
+  <li>Ga naar <strong>Overzicht</strong> en klik op het team dat aan de beurt is.</li>
+  <li>Het beoordelingsscherm opent met de 6 criteria.</li>
+</ol>
+
+<h3>Stap 6: Scores geven</h3>
+<ol>
+  <li>Klik per criterium op de juiste score: <strong>Onder</strong> (1), <strong>Op</strong> (2), <strong>Boven</strong> (3) of <strong>Excellent</strong> (4).</li>
+  <li>Standaard scoor je per student apart. Elke student heeft een eigen rij met knoppen.</li>
+  <li>Krijgen beide studenten dezelfde score op een criterium? Vink <strong>Duo-score</strong> aan. Dan hoef je maar \xe9\xe9n keer te klikken.</li>
+</ol>
+<div class="guide-tip"><strong>Tip:</strong> Klik nogmaals op een score om deze te wissen.</div>
+
+<h3>Stap 7: Observaties vastleggen</h3>
+<p>Onder elk criterium staan kleurgecodeerde observatie-tags, gegroepeerd per niveau:</p>
+<ul>
+  <li><span style="color:var(--score1)">&#9632;</span> Rood = Onder niveau</li>
+  <li><span style="color:var(--score2)">&#9632;</span> Oranje = Op niveau</li>
+  <li><span style="color:var(--score3)">&#9632;</span> Groen = Boven niveau</li>
+  <li><span style="color:var(--score4)">&#9632;</span> Paars = Excellent</li>
+</ul>
+<p>Er zijn twee manieren om een tag toe te wijzen aan een student:</p>
+<ol>
+  <li><strong>Klikken:</strong> Klik op een tag &rarr; er verschijnt een keuzemenu met de studentnamen &rarr; klik op de naam.</li>
+  <li><strong>Slepen:</strong> Sleep een tag naar het notitieveld van de student.</li>
+</ol>
+<p>De tag verschijnt als regel in het notitieveld. Je kunt er direct tekst achter typen als toelichting. Op de tag zelf verschijnt de <strong>initiaal</strong> van de student als badge.</p>
+<p>Je kunt ook vrije tekst typen in het notitieveld zonder een tag te gebruiken.</p>
+
+<h3>Stap 8: Navigeren tussen teams</h3>
+<ol>
+  <li>Klik op <strong>Volgend \u2192</strong> om naar het volgende team te gaan.</li>
+  <li>Of klik op <strong>\u2190 Overzicht</strong> en kies een ander team.</li>
+</ol>
+<div class="guide-tip"><strong>Tip:</strong> Alles wordt automatisch opgeslagen. Je hoeft nergens op "Opslaan" te klikken.</div>
+
+<h2>Fase 3: Afwikkeling (na de assessmentdag)</h2>
+
+<h3>Stap 9: Resultaten bekijken</h3>
+<ol>
+  <li>Klik op <strong>Resultaten</strong> in de menubalk.</li>
+  <li>Je ziet een tabel met alle studenten, hun scores per criterium, het totaal en het cijfer.</li>
+  <li>Studenten met een <strong>onvoldoende</strong> (een criterium onder niveau) worden <span style="color:var(--score1);font-weight:600">rood</span> gemarkeerd.</li>
+</ol>
+
+<h3>Stap 10: Feedback genereren</h3>
+<ol>
+  <li>Klik op <strong>Feedback</strong> in de menubalk.</li>
+  <li>Kies een student uit het dropdown-menu.</li>
+  <li>Je ziet het volledige feedbackrapport: scores, observaties en notities per criterium.</li>
+  <li>Klik op <strong>Print / PDF</strong> om het rapport af te drukken of als PDF op te slaan.</li>
+</ol>
+<div class="guide-tip"><strong>PDF opslaan:</strong> Kies in het printvenster als bestemming <strong>"Opslaan als PDF"</strong> in plaats van een printer.</div>
+
+<h3>Stap 11: Data exporteren</h3>
+<ol>
+  <li>Klik op <strong>Databeheer</strong> in de menubalk.</li>
+  <li><strong>CSV Overzicht</strong>: download alle scores als Excel-compatibel spreadsheet.</li>
+  <li><strong>JSON Backup</strong>: maak een volledige backup van alle data (scores, notities, alles).</li>
+  <li><strong>JSON Herstellen</strong>: laad een eerdere backup om data te herstellen.</li>
+</ol>
+
+<h2>Privacy &amp; persoonsgegevens</h2>
+<div class="guide-warn">
+  <strong>Let op:</strong> neem de volgende richtlijnen in acht:
+  <ul style="margin:0.5rem 0 0;padding-left:1.2rem">
+    <li>Gebruik <strong>alleen voornamen</strong> van studenten, geen achternamen of studentnummers.</li>
+    <li>Alle data blijft in <strong>je eigen browser</strong>. Er wordt niets naar een server gestuurd.</li>
+    <li>Deel geen JSON-backups via e-mail of gedeelde mappen. Bewaar backups <strong>alleen lokaal</strong>.</li>
+    <li>Verwijder na afloop van het assessmentblok alle data via <strong>Databeheer &rarr; Alles wissen</strong>.</li>
+  </ul>
+</div>
+
+<h2>Tips &amp; veelgestelde vragen</h2>
+<table class="guide-table">
+  <tbody>
+    <tr><td>Wordt mijn data bewaard?</td><td>Ja, alles wordt automatisch opgeslagen in je browser. Sluit je de browser, dan staat je data er de volgende keer nog.</td></tr>
+    <tr><td>Hoe maak ik een backup?</td><td>Ga naar <strong>Databeheer</strong> &rarr; klik op <strong>JSON Backup</strong>. Doe dit regelmatig!</td></tr>
+    <tr><td>Ik ben data kwijt!</td><td>Ga naar <strong>Databeheer</strong> &rarr; <strong>JSON Herstellen</strong> en selecteer je backup-bestand.</td></tr>
+    <tr><td>Het werkt niet goed</td><td>Probeer Chrome of Edge. Safari en Firefox kunnen soms afwijkend gedrag vertonen.</td></tr>
+    <tr><td>Kan ik op een tablet werken?</td><td>De app is geoptimaliseerd voor laptop, maar werkt ook op een tablet. Sleep-acties kunnen op een touchscreen lastiger zijn; gebruik dan de klik-methode voor tags.</td></tr>
+  </tbody>
+</table>
+</div>`;
 }
 
 // ==================== INIT ====================
