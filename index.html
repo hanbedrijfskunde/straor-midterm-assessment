@@ -742,7 +742,7 @@ function loadState() {
   // Ensure all groups have slotDuration and breaks
   for (const g of state.groups) {
     if (!g.slotDuration) g.slotDuration = 30;
-    if (!g.breaks) g.breaks = ['12:00'];
+    if (!g.breaks) g.breaks = [];
   }
   if (!state.students || state.students.length === 0) {
     state.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
