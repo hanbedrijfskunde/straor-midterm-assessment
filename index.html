@@ -233,7 +233,7 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
   <button class="tab active" data-view="dashboard">Overzicht</button>
   <button class="tab" data-view="results">Resultaten</button>
   <button class="tab" data-view="feedback">Feedback</button>
-  <button class="tab" data-view="export">Exporteren</button>
+  <button class="tab" data-view="export">Databeheer</button>
   <span class="spacer"></span>
   <div class="nav-actions">
     <button class="btn btn-outline" onclick="openImportModal()" title="CSV importeren">Importeer CSV</button>
@@ -328,27 +328,15 @@ function calculateGrade(total) {
   return 4;
 }
 
-const DEFAULT_STUDENTS = [
-  { id: 1, name: 'Chris', group: 'BKN-F02', team: 1, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 2, name: 'Tim', group: 'BKN-F02', team: 1, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 3, name: 'Siemen', group: 'BKN-F02', team: 2, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 4, name: 'Tijm', group: 'BKN-F02', team: 2, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 5, name: 'Donny', group: 'BKN-F02', team: 3, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 6, name: 'Nick', group: 'BKN-F02', team: 3, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 7, name: 'Jesse', group: 'BKN-F02', team: 4, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 8, name: 'Tim', group: 'BKN-F02', team: 4, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 9, name: 'Max', group: 'BKN-F02', team: 5, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 10, name: 'Maurice', group: 'BKN-F02', team: 5, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 11, name: 'Julius', group: 'BKN-F02', team: 6, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 12, name: 'Vincent', group: 'BKN-F02', team: 6, senior1: 'Witek', senior2: 'Marlous', datetime: 'vr 10 apr 09:00-14:30' },
-  { id: 13, name: 'Maud', group: 'BKN-F01', team: 1, senior1: 'Witek', senior2: 'Arthur', datetime: 'di 07 apr 09:00-14:30' },
-  { id: 14, name: 'Lynn', group: 'BKN-F01', team: 1, senior1: 'Witek', senior2: 'Arthur', datetime: 'di 07 apr 09:00-14:30' },
-  { id: 15, name: 'Maria', group: 'BKN-F01', team: 2, senior1: 'Witek', senior2: 'Arthur', datetime: 'di 07 apr 09:00-14:30' },
-  { id: 16, name: 'Lennard', group: 'BKN-F01', team: 2, senior1: 'Witek', senior2: 'Arthur', datetime: 'di 07 apr 09:00-14:30' },
-  { id: 17, name: 'Amar', group: 'BKN-F01', team: 3, senior1: 'Witek', senior2: 'Arthur', datetime: 'di 07 apr 09:00-14:30' },
-  { id: 18, name: 'Aldin', group: 'BKN-F01', team: 3, senior1: 'Witek', senior2: 'Arthur', datetime: 'di 07 apr 09:00-14:30' },
-  { id: 19, name: 'Ivan', group: 'BKN-F01', team: 4, senior1: 'Witek', senior2: 'Arthur', datetime: 'di 07 apr 09:00-14:30' },
-  { id: 20, name: 'Baran', group: 'BKN-F01', team: 4, senior1: 'Witek', senior2: 'Arthur', datetime: 'di 07 apr 09:00-14:30' },
+const DEFAULT_STUDENTS = [];
+
+const DEMO_STUDENTS = [
+  { id: 1, name: 'Anna', group: 'DEMO-01', team: 1, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
+  { id: 2, name: 'Bas', group: 'DEMO-01', team: 1, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
+  { id: 3, name: 'Carmen', group: 'DEMO-01', team: 2, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
+  { id: 4, name: 'Daan', group: 'DEMO-01', team: 2, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
+  { id: 5, name: 'Eva', group: 'DEMO-01', team: 3, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
+  { id: 6, name: 'Finn', group: 'DEMO-01', team: 3, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
 ];
 
 // ==================== STATE ====================
@@ -1110,7 +1098,7 @@ function printFeedback(studentId) {
 // ==================== EXPORT ====================
 function renderExport() {
   const el = document.getElementById('view-export');
-  el.innerHTML = `<h1>Exporteren</h1>
+  el.innerHTML = `<h1>Databeheer</h1>
     <div class="export-grid">
       <div class="export-card">
         <h3>CSV Overzicht</h3>
@@ -1128,9 +1116,19 @@ function renderExport() {
         <input type="file" id="jsonRestoreInput" accept=".json" onchange="restoreJSON(this)" style="margin-bottom:0.5rem">
       </div>
       <div class="export-card">
-        <h3>Data wissen</h3>
+        <h3>Scores wissen</h3>
         <p>Verwijder alle scores, observaties en notities. Studentenlijst blijft behouden.</p>
         <button class="btn btn-danger" onclick="clearScores()">Scores wissen</button>
+      </div>
+      <div class="export-card">
+        <h3>Voorbeelddata</h3>
+        <p>Laad 3 demoteams (6 studenten) om de app uit te proberen.</p>
+        <button class="btn btn-outline" onclick="loadDemoData()">Voorbeelddata laden</button>
+      </div>
+      <div class="export-card">
+        <h3>Volledige reset</h3>
+        <p>Wis alle data: studenten, scores, notities, planning. De app start leeg.</p>
+        <button class="btn btn-danger" onclick="fullReset()">Alles wissen</button>
       </div>
     </div>`;
 }
@@ -1189,6 +1187,28 @@ function clearScores() {
   saveState();
   showView('export');
   alert('Alle scores gewist.');
+}
+
+function fullReset() {
+  if (!confirm('LET OP: Alle data wordt permanent gewist — studenten, scores, notities en planning.\n\nWeet je het zeker?')) return;
+  localStorage.removeItem('promef_state');
+  state = { students: [], scores: {}, tags: {}, notes: {}, duoMode: {}, slots: {} };
+  loadState();
+  showView('dashboard');
+  alert('Alle data gewist. De app is opnieuw gestart.');
+}
+
+function loadDemoData() {
+  if (state.students.length > 0 && !confirm('Er zijn al studenten geladen. Wil je deze vervangen door voorbeelddata?')) return;
+  state.students = JSON.parse(JSON.stringify(DEMO_STUDENTS));
+  state.scores = {};
+  state.tags = {};
+  state.notes = {};
+  state.duoMode = {};
+  state.slots = {};
+  assignDefaultSlots();
+  saveState();
+  showView('dashboard');
 }
 
 function clearStudentScores(studentId, studentName) {
