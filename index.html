@@ -188,7 +188,10 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
 .modal .form-group label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.9rem; }
 .modal .form-group input[type="file"] { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); }
 .modal .form-group input[type="text"],
-.modal .form-group input[type="number"] { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; }
+.modal .form-group input[type="number"],
+.modal .form-group input[type="date"],
+.modal .form-group input[type="time"],
+.modal .form-group select { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; background: var(--surface); }
 .modal .form-row { display: flex; gap: 1rem; }
 .modal .form-row .form-group { flex: 1; }
 .modal .form-help { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
@@ -279,6 +282,64 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
   </div>
 </div>
 
+<div class="modal-overlay" id="groupModal">
+  <div class="modal">
+    <h2 id="groupModalTitle">Groep toevoegen</h2>
+    <div class="form-group">
+      <label>Naam</label>
+      <input type="text" id="groupName" placeholder="bijv. BKN-F01">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Senior 1</label>
+        <input type="text" id="groupSenior1" placeholder="Naam assessor">
+      </div>
+      <div class="form-group">
+        <label>Senior 2</label>
+        <input type="text" id="groupSenior2" placeholder="Naam assessor">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Datum</label>
+        <input type="date" id="groupDate">
+      </div>
+      <div class="form-group" style="flex:0 0 auto">
+        <label>Van</label>
+        <input type="time" id="groupStartTime" value="09:00">
+      </div>
+      <div class="form-group" style="flex:0 0 auto">
+        <label>Tot</label>
+        <input type="time" id="groupEndTime" value="14:30">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeGroupModal()">Annuleren</button>
+      <button class="btn btn-primary" onclick="saveGroup()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="teamModal">
+  <div class="modal">
+    <h2 id="teamModalTitle">Team toevoegen</h2>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Groep</label>
+        <select id="teamGroupSelect"></select>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Teamnummer</label>
+        <input type="number" id="teamNum" min="1" placeholder="Nr">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeTeamModal()">Annuleren</button>
+      <button class="btn btn-primary" onclick="saveTeam()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="studentModal">
   <div class="modal">
     <h2 id="studentModalTitle">Student toevoegen</h2>
@@ -289,27 +350,12 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
     <div class="form-row">
       <div class="form-group" style="flex:2">
         <label>Groep</label>
-        <input type="text" id="studentGroup" placeholder="bijv. BKN-F01" list="groupList" oninput="prefillGroupDefaults()">
-        <datalist id="groupList"></datalist>
+        <select id="studentGroupSelect" onchange="updateStudentTeamOptions()"></select>
       </div>
       <div class="form-group" style="flex:1">
         <label>Team</label>
-        <input type="number" id="studentTeam" min="1" placeholder="Nr">
+        <select id="studentTeamSelect"></select>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Senior 1</label>
-        <input type="text" id="studentSenior1" placeholder="Naam assessor">
-      </div>
-      <div class="form-group">
-        <label>Senior 2</label>
-        <input type="text" id="studentSenior2" placeholder="Naam assessor">
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Datumtijd</label>
-      <input type="text" id="studentDatetime" placeholder="bijv. ma 14 apr 09:00-14:30">
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeStudentModal()">Annuleren</button>
@@ -378,21 +424,67 @@ function calculateGrade(total) {
   return 4;
 }
 
+const DEFAULT_GROUPS = [];
+const DEFAULT_TEAMS = [];
 const DEFAULT_STUDENTS = [];
 
+const DEMO_GROUPS = [
+  { id: 'DEMO-01', name: 'DEMO-01', senior1: 'Docent A', senior2: 'Docent B', date: '2025-04-14', startTime: '09:00', endTime: '14:30' }
+];
+const DEMO_TEAMS = [
+  { id: 'DEMO-01-1', groupId: 'DEMO-01', num: 1 },
+  { id: 'DEMO-01-2', groupId: 'DEMO-01', num: 2 },
+  { id: 'DEMO-01-3', groupId: 'DEMO-01', num: 3 }
+];
 const DEMO_STUDENTS = [
-  { id: 1, name: 'Anna', group: 'DEMO-01', team: 1, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
-  { id: 2, name: 'Bas', group: 'DEMO-01', team: 1, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
-  { id: 3, name: 'Carmen', group: 'DEMO-01', team: 2, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
-  { id: 4, name: 'Daan', group: 'DEMO-01', team: 2, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
-  { id: 5, name: 'Eva', group: 'DEMO-01', team: 3, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
-  { id: 6, name: 'Finn', group: 'DEMO-01', team: 3, senior1: 'Docent A', senior2: 'Docent B', datetime: 'ma 14 apr 09:00-14:30' },
+  { id: 1, name: 'Anna', groupId: 'DEMO-01', teamId: 'DEMO-01-1' },
+  { id: 2, name: 'Bas', groupId: 'DEMO-01', teamId: 'DEMO-01-1' },
+  { id: 3, name: 'Carmen', groupId: 'DEMO-01', teamId: 'DEMO-01-2' },
+  { id: 4, name: 'Daan', groupId: 'DEMO-01', teamId: 'DEMO-01-2' },
+  { id: 5, name: 'Eva', groupId: 'DEMO-01', teamId: 'DEMO-01-3' },
+  { id: 6, name: 'Finn', groupId: 'DEMO-01', teamId: 'DEMO-01-3' },
 ];
 
 // ==================== STATE ====================
-let state = { students: [], scores: {}, tags: {}, notes: {}, duoMode: {}, slots: {} };
+let state = { groups: [], teams: [], students: [], scores: {}, tags: {}, notes: {}, duoMode: {}, slots: {} };
 
 function teamKey(group, team) { return `${group}-${team}`; }
+
+function getGroup(groupId) { return state.groups.find(g => g.id === groupId); }
+function getTeamById(teamId) { return state.teams.find(t => t.id === teamId); }
+function getGroupTeams(groupId) { return state.teams.filter(t => t.groupId === groupId).sort((a, b) => a.num - b.num); }
+
+function formatGroupDatetime(group) {
+  if (!group || !group.date) return '';
+  const d = new Date(group.date + 'T00:00:00');
+  if (isNaN(d)) return group.date;
+  const days = ['zo','ma','di','wo','do','vr','za'];
+  const months = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+  let str = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+  if (group.startTime) str += ` ${group.startTime}`;
+  if (group.endTime) str += `-${group.endTime}`;
+  return str;
+}
+
+function buildGroupsLookup() {
+  const groups = {};
+  for (const g of state.groups) {
+    groups[g.id] = { datetime: formatGroupDatetime(g), senior1: g.senior1, senior2: g.senior2, teams: {} };
+  }
+  for (const t of state.teams) {
+    if (groups[t.groupId]) groups[t.groupId].teams[t.num] = [];
+  }
+  for (const s of state.students) {
+    const t = getTeamById(s.teamId);
+    if (t && groups[t.groupId]) groups[t.groupId].teams[t.num].push(s);
+  }
+  return groups;
+}
+
+function studentTeamNum(student) {
+  const t = getTeamById(student.teamId);
+  return t ? t.num : '';
+}
 
 function getScore(studentId, critId) {
   return state.scores[studentId]?.[critId] ?? null;
@@ -404,7 +496,8 @@ function setScore(studentId, critId, level) {
 
   // Duo mode: sync to partner
   const student = state.students.find(s => s.id === studentId);
-  if (student && isDuoMode(student.group, student.team, critId)) {
+  const tm = student ? getTeamById(student.teamId) : null;
+  if (tm && isDuoMode(tm.groupId, tm.num, critId)) {
     const partner = getPartner(student);
     if (partner) {
       if (!state.scores[partner.id]) state.scores[partner.id] = {};
@@ -551,10 +644,11 @@ function toggleDuoMode(group, team, critId) {
 }
 
 function getPartner(student) {
-  return state.students.find(s => s.group === student.group && s.team === student.team && s.id !== student.id);
+  return state.students.find(s => s.teamId === student.teamId && s.id !== student.id);
 }
-function getTeamStudents(group, team) {
-  return state.students.filter(s => s.group === group && s.team === team);
+function getTeamStudents(group, teamNum) {
+  const tk = teamKey(group, teamNum);
+  return state.students.filter(s => s.teamId === tk);
 }
 
 function studentTotal(studentId) {
@@ -570,19 +664,45 @@ function studentTotal(studentId) {
 function saveState() {
   localStorage.setItem('promef_state', JSON.stringify(state));
 }
+function migrateState() {
+  // Detect old format: students have 'group' instead of 'groupId'
+  if (!state.students || state.students.length === 0 || state.students[0].groupId !== undefined) return;
+  const groupMap = {}, teamMap = {};
+  for (const s of state.students) {
+    if (!groupMap[s.group]) {
+      // Parse old datetime "di 7 apr 09:00-14:30" into date/startTime/endTime
+      let date = '', startTime = '', endTime = '';
+      if (s.datetime) {
+        const tm = s.datetime.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+        if (tm) { startTime = `${tm[1].padStart(2,'0')}:${tm[2]}`; endTime = `${tm[3].padStart(2,'0')}:${tm[4]}`; }
+      }
+      groupMap[s.group] = { id: s.group, name: s.group, senior1: s.senior1 || '', senior2: s.senior2 || '', date, startTime, endTime };
+    }
+    const tk = teamKey(s.group, s.team);
+    if (!teamMap[tk]) teamMap[tk] = { id: tk, groupId: s.group, num: s.team };
+    s.groupId = s.group; s.teamId = tk;
+    delete s.group; delete s.team; delete s.senior1; delete s.senior2; delete s.datetime;
+  }
+  state.groups = Object.values(groupMap);
+  state.teams = Object.values(teamMap);
+  saveState();
+}
+
 function loadState() {
   const saved = localStorage.getItem('promef_state');
   if (saved) {
     try { state = JSON.parse(saved); } catch(e) { console.error('Load error', e); }
   }
+  if (!state.groups) state.groups = [];
+  if (!state.teams) state.teams = [];
   if (!state.slots) state.slots = {};
+  migrateState();
   if (!state.students || state.students.length === 0) {
+    state.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+    state.teams = JSON.parse(JSON.stringify(DEFAULT_TEAMS));
     state.students = JSON.parse(JSON.stringify(DEFAULT_STUDENTS));
-    state.scores = {};
-    state.tags = {};
-    state.notes = {};
-    state.duoMode = {};
-    state.slots = {};
+    state.scores = {}; state.tags = {}; state.notes = {};
+    state.duoMode = {}; state.slots = {};
     saveState();
   }
   assignDefaultSlots();
@@ -620,16 +740,24 @@ function importCSV(text) {
   const s1i = header.indexOf('senior 1'), s2i = header.indexOf('senior 2'), di = header.indexOf('datumtijd');
   if (ni < 0 || gi < 0 || ti < 0) return false;
 
-  const students = [];
+  const groupMap = {}, teamMap = {}, students = [];
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r[ni]) continue;
-    students.push({
-      id: i, name: r[ni], group: r[gi] || '', team: parseInt(r[ti]) || 0,
-      senior1: r[s1i] || '', senior2: r[s2i] || '', datetime: r[di] || ''
-    });
+    const groupName = r[gi] || '';
+    const teamNum = parseInt(r[ti]) || 0;
+    const tk = teamKey(groupName, teamNum);
+    if (!groupMap[groupName]) {
+      let date = '', startTime = '', endTime = '';
+      const dt = r[di] || '';
+      const tm = dt.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+      if (tm) { startTime = `${tm[1].padStart(2,'0')}:${tm[2]}`; endTime = `${tm[3].padStart(2,'0')}:${tm[4]}`; }
+      groupMap[groupName] = { id: groupName, name: groupName, senior1: r[s1i] || '', senior2: r[s2i] || '', date, startTime, endTime };
+    }
+    if (!teamMap[tk]) teamMap[tk] = { id: tk, groupId: groupName, num: teamNum };
+    students.push({ id: i, name: r[ni], groupId: groupName, teamId: tk });
   }
-  return students;
+  return { groups: Object.values(groupMap), teams: Object.values(teamMap), students };
 }
 
 // ==================== NAVIGATION ====================
@@ -674,19 +802,12 @@ for (let h = 9; h <= 14; h++) {
 // TIME_SLOTS = ['09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00']
 
 function assignDefaultSlots() {
-  // Only assign slots to teams that don't have one yet
-  const groups = {};
-  state.students.forEach(s => {
-    if (!groups[s.group]) groups[s.group] = new Set();
-    groups[s.group].add(s.team);
-  });
-  for (const gName of Object.keys(groups)) {
-    const teams = [...groups[gName]].sort((a,b) => a - b);
+  for (const g of state.groups) {
+    const teams = getGroupTeams(g.id);
     let slotIdx = 0;
-    for (const tNum of teams) {
-      const tk = teamKey(gName, tNum);
-      if (!state.slots[tk]) {
-        state.slots[tk] = TIME_SLOTS[slotIdx] || TIME_SLOTS[TIME_SLOTS.length - 1];
+    for (const t of teams) {
+      if (!state.slots[t.id]) {
+        state.slots[t.id] = TIME_SLOTS[slotIdx] || TIME_SLOTS[TIME_SLOTS.length - 1];
       }
       slotIdx++;
     }
@@ -709,13 +830,7 @@ let dragData = null;
 function renderDashboard() {
   const el = document.getElementById('view-dashboard');
 
-  // Gather groups with their teams
-  const groups = {};
-  state.students.forEach(s => {
-    if (!groups[s.group]) groups[s.group] = { datetime: s.datetime, senior1: s.senior1, senior2: s.senior2, teams: {} };
-    if (!groups[s.group].teams[s.team]) groups[s.group].teams[s.team] = [];
-    groups[s.group].teams[s.team].push(s);
-  });
+  const groups = buildGroupsLookup();
   const sortedGroups = Object.keys(groups).sort();
   const numCols = sortedGroups.length + 1; // time col + day cols
 
@@ -825,12 +940,7 @@ function dropTeam(e, slotEl) {
 
 // ==================== CALENDAR PRINT ====================
 function printCalendar() {
-  const groups = {};
-  state.students.forEach(s => {
-    if (!groups[s.group]) groups[s.group] = { datetime: s.datetime, senior1: s.senior1, senior2: s.senior2, teams: {} };
-    if (!groups[s.group].teams[s.team]) groups[s.group].teams[s.team] = [];
-    groups[s.group].teams[s.team].push(s);
-  });
+  const groups = buildGroupsLookup();
   const sortedGroups = Object.keys(groups).sort();
 
   let html = '<div class="cal-print-title">Overzicht Assessments</div>';
@@ -880,14 +990,10 @@ function printCalendar() {
 
 // ==================== ASSESSMENT ====================
 function getAllTeams() {
-  const teams = [];
-  const seen = new Set();
-  state.students.forEach(s => {
-    const k = teamKey(s.group, s.team);
-    if (!seen.has(k)) { seen.add(k); teams.push({ group: s.group, team: s.team, datetime: s.datetime }); }
-  });
-  teams.sort((a, b) => a.datetime.localeCompare(b.datetime) || a.group.localeCompare(b.group) || a.team - b.team);
-  return teams;
+  return state.teams.map(t => {
+    const g = getGroup(t.groupId);
+    return { group: t.groupId, team: t.num, datetime: g ? formatGroupDatetime(g) : '' };
+  }).sort((a, b) => a.datetime.localeCompare(b.datetime) || a.group.localeCompare(b.group) || a.team - b.team);
 }
 
 function renderAssessment() {
@@ -907,7 +1013,7 @@ function renderAssessment() {
   let html = `<div class="assess-header">
     <button class="back-btn" onclick="showView('dashboard')">\u2190 Overzicht</button>
     <span class="team-title">Team ${currentTeamNum}: ${names}</span>
-    <span style="color:var(--text-muted);font-size:0.9rem">${currentTeamGroup} &bull; ${students[0].datetime}</span>
+    <span style="color:var(--text-muted);font-size:0.9rem">${currentTeamGroup} &bull; ${formatGroupDatetime(getGroup(currentTeamGroup))}</span>
     <div class="assess-nav">
       <button ${prevTeam ? `onclick="openAssessment('${prevTeam.group}', ${prevTeam.team})"` : 'disabled'}>\u2190 Vorig</button>
       <button ${nextTeam ? `onclick="openAssessment('${nextTeam.group}', ${nextTeam.team})"` : 'disabled'}>Volgend \u2192</button>
@@ -1019,8 +1125,8 @@ function renderResults() {
   const el = document.getElementById('view-results');
   const groups = {};
   state.students.forEach(s => {
-    if (!groups[s.group]) groups[s.group] = [];
-    groups[s.group].push(s);
+    if (!groups[s.groupId]) groups[s.groupId] = [];
+    groups[s.groupId].push(s);
   });
 
   let html = '<h1>Resultaten</h1>';
@@ -1035,10 +1141,10 @@ function renderResults() {
   const sortedGroups = Object.keys(groups).sort();
   for (const gName of sortedGroups) {
     html += `<tr class="group-row"><td colspan="${CRITERIA.length + 4}">${gName}</td></tr>`;
-    const students = groups[gName].sort((a, b) => a.team - b.team || a.name.localeCompare(b.name));
+    const students = groups[gName].sort((a, b) => studentTeamNum(a) - studentTeamNum(b) || a.name.localeCompare(b.name));
     for (const s of students) {
       const t = studentTotal(s.id);
-      html += `<tr><td><strong>${s.name}</strong></td><td>${s.team}</td>`;
+      html += `<tr><td><strong>${s.name}</strong></td><td>${studentTeamNum(s)}</td>`;
       for (const c of CRITERIA) {
         const score = getScore(s.id, c.id);
         const cls = score !== null ? (score < 2 ? 'warn' : '') : '';
@@ -1066,11 +1172,11 @@ function renderFeedback(selectedId) {
   html += '<div class="feedback-select no-print"><select id="feedbackStudentSelect" onchange="renderFeedback(parseInt(this.value))">';
   html += '<option value="">-- Selecteer student --</option>';
   const groups = {};
-  state.students.forEach(s => { if (!groups[s.group]) groups[s.group] = []; groups[s.group].push(s); });
+  state.students.forEach(s => { if (!groups[s.groupId]) groups[s.groupId] = []; groups[s.groupId].push(s); });
   for (const g of Object.keys(groups).sort()) {
     html += `<optgroup label="${g}">`;
-    for (const s of groups[g].sort((a,b) => a.team - b.team || a.name.localeCompare(b.name))) {
-      html += `<option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>${s.name} (Team ${s.team})</option>`;
+    for (const s of groups[g].sort((a,b) => studentTeamNum(a) - studentTeamNum(b) || a.name.localeCompare(b.name))) {
+      html += `<option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>${s.name} (Team ${studentTeamNum(s)})</option>`;
     }
     html += '</optgroup>';
   }
@@ -1085,13 +1191,14 @@ function renderFeedback(selectedId) {
     const s = state.students.find(st => st.id === selectedId);
     if (s) {
       const t = studentTotal(s.id);
-      const tk = teamKey(s.group, s.team);
+      const tk = s.teamId;
       const partner = getPartner(s);
+      const grp = getGroup(s.groupId);
 
       html += `<div class="feedback-report" id="feedbackReport">
         <h2>Feedbackrapport: ${s.name}</h2>
-        <div class="meta">${s.group} &bull; Team ${s.team}${partner ? ` (met ${partner.name})` : ''} &bull; ${s.datetime}<br>
-        Assessoren: ${s.senior1} &amp; ${s.senior2}</div>`;
+        <div class="meta">${s.groupId} &bull; Team ${studentTeamNum(s)}${partner ? ` (met ${partner.name})` : ''} &bull; ${grp ? formatGroupDatetime(grp) : ''}<br>
+        Assessoren: ${grp ? grp.senior1 : ''} &amp; ${grp ? grp.senior2 : ''}</div>`;
 
       for (const c of CRITERIA) {
         const score = getScore(s.id, c.id);
@@ -1149,127 +1256,233 @@ function printFeedback(studentId) {
 // ==================== STUDENT MANAGEMENT ====================
 function renderStudents() {
   const el = document.getElementById('view-students');
-  let html = `<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+  let html = `<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap">
     <h1 style="margin:0">Studenten</h1>
-    <button class="btn btn-primary" onclick="showStudentModal()">+ Student toevoegen</button>
+    <button class="btn btn-primary" onclick="showGroupModal()">+ Groep</button>
+    <button class="btn btn-outline" onclick="showTeamModal()">+ Team</button>
+    <button class="btn btn-outline" onclick="showStudentModal()">+ Student</button>
   </div>`;
 
-  if (state.students.length === 0) {
+  if (state.groups.length === 0) {
     html += `<div class="card" style="text-align:center;padding:3rem">
-      <p style="color:var(--text-muted)">Nog geen studenten. Voeg studenten toe, importeer een CSV of laad voorbeelddata via Databeheer.</p>
+      <p style="color:var(--text-muted)">Nog geen groepen. Maak eerst een groep aan, of laad voorbeelddata via Databeheer.</p>
     </div>`;
     el.innerHTML = html;
     return;
   }
 
-  const groups = {};
-  state.students.forEach(s => {
-    if (!groups[s.group]) groups[s.group] = {};
-    if (!groups[s.group][s.team]) groups[s.group][s.team] = [];
-    groups[s.group][s.team].push(s);
-  });
+  for (const g of state.groups.slice().sort((a, b) => a.id.localeCompare(b.id))) {
+    const safeGid = g.id.replace(/'/g, "\\'");
+    html += `<div class="card" style="margin-top:1rem">
+      <div class="card-header">
+        <div>
+          <strong style="font-size:1.1rem">${g.name}</strong>
+          <span style="color:var(--text-muted);font-size:0.85rem;margin-left:0.75rem">${g.senior1}${g.senior2 ? ' & ' + g.senior2 : ''} &bull; ${formatGroupDatetime(g)}</span>
+        </div>
+        <div>
+          <button class="btn-action" onclick="showGroupModal('${safeGid}')" title="Groep bewerken">\u270E</button>
+          <button class="btn-action btn-action-danger" onclick="deleteGroup('${safeGid}')" title="Groep verwijderen">\u2715</button>
+        </div>
+      </div>`;
 
-  for (const gName of Object.keys(groups).sort()) {
-    const teams = groups[gName];
-    html += `<h2 style="margin-top:1.5rem">${gName}</h2>`;
-    html += `<div style="overflow-x:auto"><table class="results-table"><thead><tr>
-      <th style="text-align:left">Naam</th><th>Team</th><th>Senior 1</th><th>Senior 2</th><th>Datum</th><th>Acties</th>
-    </tr></thead><tbody>`;
-
-    for (const tNum of Object.keys(teams).sort((a, b) => a - b)) {
-      const teamStudents = teams[tNum];
-      html += `<tr class="group-row"><td colspan="5">Team ${tNum}</td>
-        <td style="text-align:center"><button class="btn-action btn-action-danger" onclick="deleteTeam('${gName.replace(/'/g, "\\'")}', ${tNum})" title="Team verwijderen">\u2715</button></td></tr>`;
-      for (const s of teamStudents) {
-        html += `<tr>
-          <td style="text-align:left"><strong>${s.name}</strong></td>
-          <td>${s.team}</td><td>${s.senior1}</td><td>${s.senior2}</td><td>${s.datetime}</td>
-          <td style="text-align:center">
-            <button class="btn-action" onclick="showStudentModal(${s.id})" title="Bewerken">\u270E</button>
-            <button class="btn-action btn-action-danger" onclick="deleteStudent(${s.id}, '${s.name.replace(/'/g, "\\'")}')" title="Verwijderen">\u2715</button>
-          </td></tr>`;
-      }
+    const teams = getGroupTeams(g.id);
+    if (teams.length === 0) {
+      html += `<p style="color:var(--text-muted);font-size:0.85rem">Nog geen teams. <a href="#" onclick="event.preventDefault(); showTeamModal(null,'${safeGid}')">Team toevoegen</a></p>`;
     }
-    html += '</tbody></table></div>';
+
+    for (const t of teams) {
+      const teamStudents = state.students.filter(s => s.teamId === t.id);
+      html += `<div style="margin-left:0.5rem;margin-bottom:0.75rem">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem">
+          <strong style="color:var(--primary);font-size:0.9rem">Team ${t.num}</strong>
+          <button class="btn-action btn-action-danger" style="font-size:0.75rem" onclick="deleteTeam('${safeGid}', ${t.num})" title="Team verwijderen">\u2715</button>
+        </div>`;
+
+      if (teamStudents.length === 0) {
+        html += `<div style="color:var(--text-muted);font-size:0.85rem;margin-left:1rem">Geen studenten</div>`;
+      }
+      for (const s of teamStudents) {
+        html += `<div style="display:flex;align-items:center;gap:0.5rem;margin-left:1rem;padding:0.2rem 0">
+          <span style="flex:1">${s.name}</span>
+          <button class="btn-action" style="font-size:0.75rem" onclick="showStudentModal(${s.id})" title="Bewerken">\u270E</button>
+          <button class="btn-action btn-action-danger" style="font-size:0.75rem" onclick="deleteStudent(${s.id}, '${s.name.replace(/'/g, "\\'")}')" title="Verwijderen">\u2715</button>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
   }
   el.innerHTML = html;
 }
 
+// ---- Group CRUD ----
+let editingGroupId = null;
+
+function showGroupModal(groupId) {
+  editingGroupId = groupId || null;
+  document.getElementById('groupModalTitle').textContent = editingGroupId ? 'Groep bewerken' : 'Groep toevoegen';
+  if (editingGroupId) {
+    const g = getGroup(editingGroupId);
+    if (g) {
+      document.getElementById('groupName').value = g.name;
+      document.getElementById('groupSenior1').value = g.senior1;
+      document.getElementById('groupSenior2').value = g.senior2;
+      document.getElementById('groupDate').value = g.date || '';
+      document.getElementById('groupStartTime').value = g.startTime || '09:00';
+      document.getElementById('groupEndTime').value = g.endTime || '14:30';
+    }
+  } else {
+    document.getElementById('groupName').value = '';
+    document.getElementById('groupSenior1').value = '';
+    document.getElementById('groupSenior2').value = '';
+    document.getElementById('groupDate').value = '';
+    document.getElementById('groupStartTime').value = '09:00';
+    document.getElementById('groupEndTime').value = '14:30';
+  }
+  document.getElementById('groupModal').classList.add('open');
+  document.getElementById('groupName').focus();
+}
+function closeGroupModal() { document.getElementById('groupModal').classList.remove('open'); editingGroupId = null; }
+
+function saveGroup() {
+  const name = document.getElementById('groupName').value.trim();
+  if (!name) { alert('Vul een groepsnaam in.'); return; }
+  const senior1 = document.getElementById('groupSenior1').value.trim();
+  const senior2 = document.getElementById('groupSenior2').value.trim();
+  const date = document.getElementById('groupDate').value;
+  const startTime = document.getElementById('groupStartTime').value;
+  const endTime = document.getElementById('groupEndTime').value;
+
+  if (editingGroupId) {
+    const g = getGroup(editingGroupId);
+    if (g) { g.name = name; g.senior1 = senior1; g.senior2 = senior2; g.date = date; g.startTime = startTime; g.endTime = endTime; }
+  } else {
+    if (state.groups.find(g => g.id === name)) { alert('Er bestaat al een groep met deze naam.'); return; }
+    state.groups.push({ id: name, name, senior1, senior2, date, startTime, endTime });
+  }
+  saveState();
+  closeGroupModal();
+  renderStudents();
+}
+
+function deleteGroup(groupId) {
+  const teams = getGroupTeams(groupId);
+  const studentCount = state.students.filter(s => s.groupId === groupId).length;
+  const msg = studentCount > 0
+    ? `Groep "${groupId}" verwijderen inclusief ${teams.length} team(s) en ${studentCount} student(en)? Alle data wordt gewist.`
+    : `Groep "${groupId}" verwijderen?`;
+  if (!confirm(msg)) return;
+  // Cascade delete
+  for (const t of teams) {
+    state.students.filter(s => s.teamId === t.id).forEach(s => { delete state.scores[s.id]; delete state.notes[s.id]; });
+    delete state.duoMode[t.id]; delete state.slots[t.id];
+  }
+  state.students = state.students.filter(s => s.groupId !== groupId);
+  state.teams = state.teams.filter(t => t.groupId !== groupId);
+  state.groups = state.groups.filter(g => g.id !== groupId);
+  saveState();
+  renderStudents();
+}
+
+// ---- Team CRUD ----
+let editingTeamId = null;
+
+function showTeamModal(teamId, preselectedGroupId) {
+  editingTeamId = teamId || null;
+  document.getElementById('teamModalTitle').textContent = editingTeamId ? 'Team bewerken' : 'Team toevoegen';
+  const sel = document.getElementById('teamGroupSelect');
+  sel.innerHTML = state.groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  if (editingTeamId) {
+    const t = getTeamById(editingTeamId);
+    if (t) { sel.value = t.groupId; document.getElementById('teamNum').value = t.num; }
+  } else {
+    if (preselectedGroupId) sel.value = preselectedGroupId;
+    // Suggest next team number
+    const gId = sel.value;
+    const existing = getGroupTeams(gId);
+    document.getElementById('teamNum').value = existing.length > 0 ? Math.max(...existing.map(t => t.num)) + 1 : 1;
+  }
+  document.getElementById('teamModal').classList.add('open');
+}
+function closeTeamModal() { document.getElementById('teamModal').classList.remove('open'); editingTeamId = null; }
+
+function saveTeam() {
+  const groupId = document.getElementById('teamGroupSelect').value;
+  const num = parseInt(document.getElementById('teamNum').value);
+  if (!groupId || !num) { alert('Selecteer een groep en vul een teamnummer in.'); return; }
+  const tk = teamKey(groupId, num);
+  if (!editingTeamId && state.teams.find(t => t.id === tk)) { alert('Dit team bestaat al.'); return; }
+  if (editingTeamId) {
+    const t = getTeamById(editingTeamId);
+    if (t) { t.groupId = groupId; t.num = num; t.id = tk; }
+  } else {
+    state.teams.push({ id: tk, groupId, num });
+  }
+  assignDefaultSlots();
+  saveState();
+  closeTeamModal();
+  renderStudents();
+}
+
+function deleteTeam(group, teamNum) {
+  const students = getTeamStudents(group, teamNum);
+  const names = students.map(s => s.name).join(', ');
+  if (!confirm(`Team ${teamNum} verwijderen${names ? ' (' + names + ')' : ''}? Alle scores en notities worden gewist.`)) return;
+  const tk = teamKey(group, teamNum);
+  students.forEach(s => { delete state.scores[s.id]; delete state.notes[s.id]; });
+  delete state.duoMode[tk]; delete state.slots[tk];
+  state.students = state.students.filter(s => s.teamId !== tk);
+  state.teams = state.teams.filter(t => t.id !== tk);
+  saveState();
+  renderStudents();
+}
+
+// ---- Student CRUD ----
 let editingStudentId = null;
+
+function updateStudentTeamOptions() {
+  const groupId = document.getElementById('studentGroupSelect').value;
+  const sel = document.getElementById('studentTeamSelect');
+  const teams = getGroupTeams(groupId);
+  sel.innerHTML = teams.map(t => `<option value="${t.id}">Team ${t.num}</option>`).join('');
+}
 
 function showStudentModal(studentId) {
   editingStudentId = studentId || null;
   document.getElementById('studentModalTitle').textContent = editingStudentId ? 'Student bewerken' : 'Student toevoegen';
-
-  const groups = [...new Set(state.students.map(s => s.group))];
-  document.getElementById('groupList').innerHTML = groups.map(g => `<option value="${g}">`).join('');
-
+  const gSel = document.getElementById('studentGroupSelect');
+  gSel.innerHTML = state.groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
   if (editingStudentId) {
     const s = state.students.find(st => st.id === editingStudentId);
     if (s) {
       document.getElementById('studentName').value = s.name;
-      document.getElementById('studentGroup').value = s.group;
-      document.getElementById('studentTeam').value = s.team;
-      document.getElementById('studentSenior1').value = s.senior1;
-      document.getElementById('studentSenior2').value = s.senior2;
-      document.getElementById('studentDatetime').value = s.datetime;
+      gSel.value = s.groupId;
+      updateStudentTeamOptions();
+      document.getElementById('studentTeamSelect').value = s.teamId;
     }
   } else {
     document.getElementById('studentName').value = '';
-    document.getElementById('studentGroup').value = '';
-    document.getElementById('studentTeam').value = '';
-    document.getElementById('studentSenior1').value = '';
-    document.getElementById('studentSenior2').value = '';
-    document.getElementById('studentDatetime').value = '';
+    updateStudentTeamOptions();
   }
   document.getElementById('studentModal').classList.add('open');
   document.getElementById('studentName').focus();
 }
 
-function closeStudentModal() {
-  document.getElementById('studentModal').classList.remove('open');
-  editingStudentId = null;
-}
-
-function prefillGroupDefaults() {
-  const group = document.getElementById('studentGroup').value.trim();
-  if (!group || editingStudentId) return;
-  const existing = state.students.find(s => s.group === group);
-  if (existing) {
-    const s1 = document.getElementById('studentSenior1');
-    const s2 = document.getElementById('studentSenior2');
-    const dt = document.getElementById('studentDatetime');
-    if (!s1.value) s1.value = existing.senior1;
-    if (!s2.value) s2.value = existing.senior2;
-    if (!dt.value) dt.value = existing.datetime;
-  }
-}
+function closeStudentModal() { document.getElementById('studentModal').classList.remove('open'); editingStudentId = null; }
 
 function saveStudent() {
   const name = document.getElementById('studentName').value.trim();
-  const group = document.getElementById('studentGroup').value.trim();
-  const team = parseInt(document.getElementById('studentTeam').value);
-  const senior1 = document.getElementById('studentSenior1').value.trim();
-  const senior2 = document.getElementById('studentSenior2').value.trim();
-  const datetime = document.getElementById('studentDatetime').value.trim();
-
-  if (!name || !group || !team) {
-    alert('Vul minimaal naam, groep en team in.');
-    return;
-  }
+  const groupId = document.getElementById('studentGroupSelect').value;
+  const teamId = document.getElementById('studentTeamSelect').value;
+  if (!name || !groupId || !teamId) { alert('Vul naam in en selecteer groep en team.'); return; }
 
   if (editingStudentId) {
     const s = state.students.find(st => st.id === editingStudentId);
-    if (s) {
-      s.name = name; s.group = group; s.team = team;
-      s.senior1 = senior1; s.senior2 = senior2; s.datetime = datetime;
-    }
+    if (s) { s.name = name; s.groupId = groupId; s.teamId = teamId; }
   } else {
     const newId = Math.max(0, ...state.students.map(s => s.id)) + 1;
-    state.students.push({ id: newId, name, group, team, senior1, senior2, datetime });
+    state.students.push({ id: newId, name, groupId, teamId });
   }
-
-  assignDefaultSlots();
   saveState();
   closeStudentModal();
   renderStudents();
@@ -1281,27 +1494,11 @@ function deleteStudent(studentId, studentName) {
   if (student) {
     delete state.scores[studentId];
     delete state.notes[studentId];
-    const tk = teamKey(student.group, student.team);
-    const remaining = state.students.filter(s => s.group === student.group && s.team === student.team && s.id !== studentId);
-    if (remaining.length === 0) {
-      delete state.duoMode[tk];
-      delete state.slots[tk];
-    }
+    const tk = student.teamId;
+    const remaining = state.students.filter(s => s.teamId === tk && s.id !== studentId);
+    if (remaining.length === 0) { delete state.duoMode[tk]; delete state.slots[tk]; }
   }
   state.students = state.students.filter(s => s.id !== studentId);
-  saveState();
-  renderStudents();
-}
-
-function deleteTeam(group, teamNum) {
-  const students = getTeamStudents(group, teamNum);
-  const names = students.map(s => s.name).join(', ');
-  if (!confirm(`Team ${teamNum} verwijderen (${names})? Alle scores en notities worden gewist.`)) return;
-  const tk = teamKey(group, teamNum);
-  students.forEach(s => { delete state.scores[s.id]; delete state.notes[s.id]; });
-  delete state.duoMode[tk];
-  delete state.slots[tk];
-  state.students = state.students.filter(s => !(s.group === group && s.team === teamNum));
   saveState();
   renderStudents();
 }
@@ -1351,7 +1548,8 @@ function exportCSV() {
 
   for (const s of state.students) {
     const t = studentTotal(s.id);
-    csv += `"${s.name}","${s.group}",${s.team},"${s.senior1}","${s.senior2}","${s.datetime}"`;
+    const grp = getGroup(s.groupId);
+    csv += `"${s.name}","${s.groupId}",${studentTeamNum(s)},"${grp?.senior1 || ''}","${grp?.senior2 || ''}","${grp ? formatGroupDatetime(grp) : ''}"`;
     for (const c of CRITERIA) {
       const score = getScore(s.id, c.id);
       csv += `,${score !== null ? score : ''}`;
@@ -1378,6 +1576,9 @@ function restoreJSON(input) {
       const data = JSON.parse(e.target.result);
       if (data.students && data.scores) {
         state = data;
+        if (!state.groups) state.groups = [];
+        if (!state.teams) state.teams = [];
+        migrateState();
         saveState();
         showView('export');
         alert('Data hersteld!');
@@ -1403,7 +1604,7 @@ function clearScores() {
 function fullReset() {
   if (!confirm('LET OP: Alle data wordt permanent gewist — studenten, scores, notities en planning.\n\nWeet je het zeker?')) return;
   localStorage.removeItem('promef_state');
-  state = { students: [], scores: {}, tags: {}, notes: {}, duoMode: {}, slots: {} };
+  state = { groups: [], teams: [], students: [], scores: {}, tags: {}, notes: {}, duoMode: {}, slots: {} };
   loadState();
   showView('dashboard');
   alert('Alle data gewist. De app is opnieuw gestart.');
@@ -1411,6 +1612,8 @@ function fullReset() {
 
 function loadDemoData() {
   if (state.students.length > 0 && !confirm('Er zijn al studenten geladen. Wil je deze vervangen door voorbeelddata?')) return;
+  state.groups = JSON.parse(JSON.stringify(DEMO_GROUPS));
+  state.teams = JSON.parse(JSON.stringify(DEMO_TEAMS));
   state.students = JSON.parse(JSON.stringify(DEMO_STUDENTS));
   state.scores = {};
   state.tags = {};
@@ -1431,7 +1634,7 @@ function clearStudentScores(studentId, studentName) {
   // Clear tags for teams this student belongs to
   const student = state.students.find(s => s.id === studentId);
   if (student) {
-    const tk = teamKey(student.group, student.team);
+    const tk = student.teamId;
     if (state.tags[tk]) delete state.tags[tk];
     if (state.duoMode[tk]) delete state.duoMode[tk];
   }
@@ -1459,22 +1662,24 @@ function doImport() {
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    const students = importCSV(e.target.result);
-    if (!students || students.length === 0) {
+    const result = importCSV(e.target.result);
+    if (!result || result.students.length === 0) {
       alert('Kon geen studenten vinden in het CSV-bestand. Controleer het formaat.');
       return;
     }
     if (replace) {
-      state.students = students;
-      state.scores = {};
-      state.tags = {};
-      state.notes = {};
-      state.duoMode = {};
-      state.slots = {};
+      state.groups = result.groups;
+      state.teams = result.teams;
+      state.students = result.students;
+      state.scores = {}; state.tags = {}; state.notes = {};
+      state.duoMode = {}; state.slots = {};
     } else {
       const maxId = Math.max(0, ...state.students.map(s => s.id));
-      students.forEach((s, i) => { s.id = maxId + i + 1; });
-      state.students.push(...students);
+      result.students.forEach((s, i) => { s.id = maxId + i + 1; });
+      // Merge groups and teams (skip duplicates)
+      for (const g of result.groups) { if (!state.groups.find(x => x.id === g.id)) state.groups.push(g); }
+      for (const t of result.teams) { if (!state.teams.find(x => x.id === t.id)) state.teams.push(t); }
+      state.students.push(...result.students);
     }
     assignDefaultSlots();
     saveState();
