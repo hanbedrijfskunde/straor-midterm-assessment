@@ -187,8 +187,17 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
 .modal .form-group { margin-bottom: 1rem; }
 .modal .form-group label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.9rem; }
 .modal .form-group input[type="file"] { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); }
+.modal .form-group input[type="text"],
+.modal .form-group input[type="number"] { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; }
+.modal .form-row { display: flex; gap: 1rem; }
+.modal .form-row .form-group { flex: 1; }
 .modal .form-help { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
 .modal .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+/* ==================== STUDENT MANAGEMENT ==================== */
+.btn-action { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem; color: var(--text-muted); border: 1px solid var(--border); margin: 0 0.1rem; }
+.btn-action:hover { background: var(--bg); color: var(--text); border-color: var(--text-muted); }
+.btn-action-danger:hover { background: var(--score1); color: white; border-color: var(--score1); }
 
 /* ==================== PRINT TABLE (hidden on screen) ==================== */
 #calendarPrintArea { display: none; }
@@ -233,6 +242,7 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
   <button class="tab active" data-view="dashboard">Overzicht</button>
   <button class="tab" data-view="results">Resultaten</button>
   <button class="tab" data-view="feedback">Feedback</button>
+  <button class="tab" data-view="students">Studenten</button>
   <button class="tab" data-view="export">Databeheer</button>
   <span class="spacer"></span>
   <div class="nav-actions">
@@ -245,6 +255,7 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
   <section id="view-assessment" class="view"></section>
   <section id="view-results" class="view"></section>
   <section id="view-feedback" class="view"></section>
+  <section id="view-students" class="view"></section>
   <section id="view-export" class="view"></section>
 </main>
 
@@ -264,6 +275,45 @@ h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-muted); }
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeImportModal()">Annuleren</button>
       <button class="btn btn-primary" onclick="doImport()">Importeren</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="studentModal">
+  <div class="modal">
+    <h2 id="studentModalTitle">Student toevoegen</h2>
+    <div class="form-group">
+      <label>Naam</label>
+      <input type="text" id="studentName" placeholder="Volledige naam">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Groep</label>
+        <input type="text" id="studentGroup" placeholder="bijv. BKN-F01" list="groupList" oninput="prefillGroupDefaults()">
+        <datalist id="groupList"></datalist>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Team</label>
+        <input type="number" id="studentTeam" min="1" placeholder="Nr">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Senior 1</label>
+        <input type="text" id="studentSenior1" placeholder="Naam assessor">
+      </div>
+      <div class="form-group">
+        <label>Senior 2</label>
+        <input type="text" id="studentSenior2" placeholder="Naam assessor">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Datumtijd</label>
+      <input type="text" id="studentDatetime" placeholder="bijv. ma 14 apr 09:00-14:30">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeStudentModal()">Annuleren</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Opslaan</button>
     </div>
   </div>
 </div>
@@ -599,6 +649,7 @@ function showView(view) {
   else if (view === 'assessment') renderAssessment();
   else if (view === 'results') renderResults();
   else if (view === 'feedback') renderFeedback();
+  else if (view === 'students') renderStudents();
   else if (view === 'export') renderExport();
 }
 
@@ -1093,6 +1144,166 @@ function printFeedback(studentId) {
   document.getElementById('view-feedback').classList.add('print-active');
   window.print();
   document.getElementById('view-feedback').classList.remove('print-active');
+}
+
+// ==================== STUDENT MANAGEMENT ====================
+function renderStudents() {
+  const el = document.getElementById('view-students');
+  let html = `<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+    <h1 style="margin:0">Studenten</h1>
+    <button class="btn btn-primary" onclick="showStudentModal()">+ Student toevoegen</button>
+  </div>`;
+
+  if (state.students.length === 0) {
+    html += `<div class="card" style="text-align:center;padding:3rem">
+      <p style="color:var(--text-muted)">Nog geen studenten. Voeg studenten toe, importeer een CSV of laad voorbeelddata via Databeheer.</p>
+    </div>`;
+    el.innerHTML = html;
+    return;
+  }
+
+  const groups = {};
+  state.students.forEach(s => {
+    if (!groups[s.group]) groups[s.group] = {};
+    if (!groups[s.group][s.team]) groups[s.group][s.team] = [];
+    groups[s.group][s.team].push(s);
+  });
+
+  for (const gName of Object.keys(groups).sort()) {
+    const teams = groups[gName];
+    html += `<h2 style="margin-top:1.5rem">${gName}</h2>`;
+    html += `<div style="overflow-x:auto"><table class="results-table"><thead><tr>
+      <th style="text-align:left">Naam</th><th>Team</th><th>Senior 1</th><th>Senior 2</th><th>Datum</th><th>Acties</th>
+    </tr></thead><tbody>`;
+
+    for (const tNum of Object.keys(teams).sort((a, b) => a - b)) {
+      const teamStudents = teams[tNum];
+      html += `<tr class="group-row"><td colspan="5">Team ${tNum}</td>
+        <td style="text-align:center"><button class="btn-action btn-action-danger" onclick="deleteTeam('${gName.replace(/'/g, "\\'")}', ${tNum})" title="Team verwijderen">\u2715</button></td></tr>`;
+      for (const s of teamStudents) {
+        html += `<tr>
+          <td style="text-align:left"><strong>${s.name}</strong></td>
+          <td>${s.team}</td><td>${s.senior1}</td><td>${s.senior2}</td><td>${s.datetime}</td>
+          <td style="text-align:center">
+            <button class="btn-action" onclick="showStudentModal(${s.id})" title="Bewerken">\u270E</button>
+            <button class="btn-action btn-action-danger" onclick="deleteStudent(${s.id}, '${s.name.replace(/'/g, "\\'")}')" title="Verwijderen">\u2715</button>
+          </td></tr>`;
+      }
+    }
+    html += '</tbody></table></div>';
+  }
+  el.innerHTML = html;
+}
+
+let editingStudentId = null;
+
+function showStudentModal(studentId) {
+  editingStudentId = studentId || null;
+  document.getElementById('studentModalTitle').textContent = editingStudentId ? 'Student bewerken' : 'Student toevoegen';
+
+  const groups = [...new Set(state.students.map(s => s.group))];
+  document.getElementById('groupList').innerHTML = groups.map(g => `<option value="${g}">`).join('');
+
+  if (editingStudentId) {
+    const s = state.students.find(st => st.id === editingStudentId);
+    if (s) {
+      document.getElementById('studentName').value = s.name;
+      document.getElementById('studentGroup').value = s.group;
+      document.getElementById('studentTeam').value = s.team;
+      document.getElementById('studentSenior1').value = s.senior1;
+      document.getElementById('studentSenior2').value = s.senior2;
+      document.getElementById('studentDatetime').value = s.datetime;
+    }
+  } else {
+    document.getElementById('studentName').value = '';
+    document.getElementById('studentGroup').value = '';
+    document.getElementById('studentTeam').value = '';
+    document.getElementById('studentSenior1').value = '';
+    document.getElementById('studentSenior2').value = '';
+    document.getElementById('studentDatetime').value = '';
+  }
+  document.getElementById('studentModal').classList.add('open');
+  document.getElementById('studentName').focus();
+}
+
+function closeStudentModal() {
+  document.getElementById('studentModal').classList.remove('open');
+  editingStudentId = null;
+}
+
+function prefillGroupDefaults() {
+  const group = document.getElementById('studentGroup').value.trim();
+  if (!group || editingStudentId) return;
+  const existing = state.students.find(s => s.group === group);
+  if (existing) {
+    const s1 = document.getElementById('studentSenior1');
+    const s2 = document.getElementById('studentSenior2');
+    const dt = document.getElementById('studentDatetime');
+    if (!s1.value) s1.value = existing.senior1;
+    if (!s2.value) s2.value = existing.senior2;
+    if (!dt.value) dt.value = existing.datetime;
+  }
+}
+
+function saveStudent() {
+  const name = document.getElementById('studentName').value.trim();
+  const group = document.getElementById('studentGroup').value.trim();
+  const team = parseInt(document.getElementById('studentTeam').value);
+  const senior1 = document.getElementById('studentSenior1').value.trim();
+  const senior2 = document.getElementById('studentSenior2').value.trim();
+  const datetime = document.getElementById('studentDatetime').value.trim();
+
+  if (!name || !group || !team) {
+    alert('Vul minimaal naam, groep en team in.');
+    return;
+  }
+
+  if (editingStudentId) {
+    const s = state.students.find(st => st.id === editingStudentId);
+    if (s) {
+      s.name = name; s.group = group; s.team = team;
+      s.senior1 = senior1; s.senior2 = senior2; s.datetime = datetime;
+    }
+  } else {
+    const newId = Math.max(0, ...state.students.map(s => s.id)) + 1;
+    state.students.push({ id: newId, name, group, team, senior1, senior2, datetime });
+  }
+
+  assignDefaultSlots();
+  saveState();
+  closeStudentModal();
+  renderStudents();
+}
+
+function deleteStudent(studentId, studentName) {
+  if (!confirm(`Student "${studentName}" verwijderen? Alle scores en notities worden gewist.`)) return;
+  const student = state.students.find(s => s.id === studentId);
+  if (student) {
+    delete state.scores[studentId];
+    delete state.notes[studentId];
+    const tk = teamKey(student.group, student.team);
+    const remaining = state.students.filter(s => s.group === student.group && s.team === student.team && s.id !== studentId);
+    if (remaining.length === 0) {
+      delete state.duoMode[tk];
+      delete state.slots[tk];
+    }
+  }
+  state.students = state.students.filter(s => s.id !== studentId);
+  saveState();
+  renderStudents();
+}
+
+function deleteTeam(group, teamNum) {
+  const students = getTeamStudents(group, teamNum);
+  const names = students.map(s => s.name).join(', ');
+  if (!confirm(`Team ${teamNum} verwijderen (${names})? Alle scores en notities worden gewist.`)) return;
+  const tk = teamKey(group, teamNum);
+  students.forEach(s => { delete state.scores[s.id]; delete state.notes[s.id]; });
+  delete state.duoMode[tk];
+  delete state.slots[tk];
+  state.students = state.students.filter(s => !(s.group === group && s.team === teamNum));
+  saveState();
+  renderStudents();
 }
 
 // ==================== EXPORT ====================
