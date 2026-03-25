@@ -57,7 +57,7 @@ Groepen, teams en studenten worden beheerd via de **Studenten**-view of via CSV-
 - Cascade-verwijdering: groep verwijderen wist ook teams en studenten met data
 
 #### Import & databeheer
-- CSV-import voor deelnemersdata (herbruikbaar voor volgende cohorten) — parset automatisch groepen en teams uit CSV
+- CSV-import voor deelnemersdata (herbruikbaar voor volgende cohorten) — parset automatisch groepen en teams uit CSV. Ondersteunt zowel komma als puntkomma als scheidingsteken (auto-detectie voor Nederlands Excel)
 - Automatische verdeling van teams over tijdslots bij import (elk team krijgt een volgend slot van 30 min)
 - Voorbeelddata laden (3 demoteams) om de app uit te proberen
 - Volledige reset: wist alle data uit localStorage
@@ -82,8 +82,9 @@ Tags zijn gegroepeerd per scoreniveau (Onder/Op/Boven/Excellent) met bijbehorend
 - Tags staan als kleurgecodeerde chips boven de notitievelden
 - **Klik** op tag → picker popup met studentnamen → tag wordt in het notitieveld van die student geplaatst als `✓ tag-tekst`
 - **Sleep** tag naar notitieveld → tag wordt ingevoegd
-- Gebruikte tags tonen initiaal-badges van toegewezen student(en)
-- Tags worden opgeslagen als onderdeel van notities (geen apart tag-state)
+- Gebruikte tags tonen initiaal-badges van toegewezen student(en); badges blijven zichtbaar als er tekst voor of achter de tag wordt getypt
+- Tags worden opgeslagen als `✓ tagText` markers in notities (geen apart tag-state). Matching via `includes` — markers kunnen overal in de tekst staan
+- Toggle-off (tag verwijderen) wist alleen de marker, omliggende tekst blijft behouden
 
 #### Notitievelden:
 - Per student per criterium een auto-groeiend tekstveld
@@ -142,6 +143,7 @@ Tags zijn gegroepeerd per scoreniveau (Onder/Op/Boven/Excellent) met bijbehorend
 4. **Feedback** - per-student rapport genereren/bekijken
 5. **Studenten** - beheer van groepen, teams en studenten (toevoegen, bewerken, verwijderen)
 6. **Databeheer** - CSV/JSON export, JSON backup/restore, voorbeelddata laden, volledige reset
+7. **Handleiding** - ingebouwde stapsgewijze gebruikershandleiding (voorbereiding, assessment, afwikkeling) gericht op weinig digivaardige collega's, inclusief Excel/CSV instructies en privacy-richtlijnen
 
 ---
 
