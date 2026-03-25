@@ -458,6 +458,21 @@ function getGroup(groupId) { return state.groups.find(g => g.id === groupId); }
 function getTeamById(teamId) { return state.teams.find(t => t.id === teamId); }
 function getGroupTeams(groupId) { return state.teams.filter(t => t.groupId === groupId).sort((a, b) => a.num - b.num); }
 
+function parseDatetimeString(str) {
+  let date = '', startTime = '', endTime = '';
+  if (!str) return { date, startTime, endTime };
+  const tm = str.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+  if (tm) { startTime = `${tm[1].padStart(2,'0')}:${tm[2]}`; endTime = `${tm[3].padStart(2,'0')}:${tm[4]}`; }
+  // Parse Dutch date like "di 7 apr" or "vr 10 apr"
+  const months = {jan:'01',feb:'02',mrt:'03',apr:'04',mei:'05',jun:'06',jul:'07',aug:'08',sep:'09',okt:'10',nov:'11',dec:'12'};
+  const dm = str.match(/(\d{1,2})\s+(jan|feb|mrt|apr|mei|jun|jul|aug|sep|okt|nov|dec)/i);
+  if (dm) {
+    const year = new Date().getFullYear();
+    date = `${year}-${months[dm[2].toLowerCase()]}-${dm[1].padStart(2,'0')}`;
+  }
+  return { date, startTime, endTime };
+}
+
 function formatGroupDatetime(group) {
   if (!group || !group.date) return '';
   const d = new Date(group.date + 'T00:00:00');
@@ -675,11 +690,7 @@ function migrateState() {
   for (const s of state.students) {
     if (!groupMap[s.group]) {
       // Parse old datetime "di 7 apr 09:00-14:30" into date/startTime/endTime
-      let date = '', startTime = '', endTime = '';
-      if (s.datetime) {
-        const tm = s.datetime.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
-        if (tm) { startTime = `${tm[1].padStart(2,'0')}:${tm[2]}`; endTime = `${tm[3].padStart(2,'0')}:${tm[4]}`; }
-      }
+      const { date, startTime, endTime } = parseDatetimeString(s.datetime);
       groupMap[s.group] = { id: s.group, name: s.group, senior1: s.senior1 || '', senior2: s.senior2 || '', date, startTime, endTime };
     }
     const tk = teamKey(s.group, s.team);
@@ -752,10 +763,7 @@ function importCSV(text) {
     const teamNum = parseInt(r[ti]) || 0;
     const tk = teamKey(groupName, teamNum);
     if (!groupMap[groupName]) {
-      let date = '', startTime = '', endTime = '';
-      const dt = r[di] || '';
-      const tm = dt.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
-      if (tm) { startTime = `${tm[1].padStart(2,'0')}:${tm[2]}`; endTime = `${tm[3].padStart(2,'0')}:${tm[4]}`; }
+      const { date, startTime, endTime } = parseDatetimeString(r[di] || '');
       groupMap[groupName] = { id: groupName, name: groupName, senior1: r[s1i] || '', senior2: r[s2i] || '', date, startTime, endTime };
     }
     if (!teamMap[tk]) teamMap[tk] = { id: tk, groupId: groupName, num: teamNum };
