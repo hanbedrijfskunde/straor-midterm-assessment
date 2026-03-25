@@ -16,13 +16,13 @@ Open `index.html` directly in a browser. No build step, no server, no dependenci
 
 Everything lives in one `index.html` file with inline `<style>` and `<script>` sections:
 
-- **CSS** (lines ~7–200): CSS custom properties for theming, component styles. Score levels use `--score1` through `--score4` color variables.
-- **HTML** (lines ~230–370): Static shell with 6 view sections (`view-dashboard`, `view-assessment`, `view-results`, `view-feedback`, `view-students`, `view-export`) plus modals for group/team/student management and CSV import. Views are toggled via `.active` class.
-- **JS** (lines ~370–end): Vanilla JS, no frameworks. Key sections:
+- **CSS** (lines ~7–350): CSS custom properties for theming, component styles. Score levels use `--score1` through `--score4` color variables. Responsive media queries at 768px (tablet) and 480px (phone) breakpoints. `--touch-min: 44px` for touch target sizing.
+- **HTML** (lines ~365–400): Static shell with 6 view sections (`view-dashboard`, `view-assessment`, `view-results`, `view-feedback`, `view-students`, `view-export`) plus modals for group/team/student management and CSV import. Views are toggled via `.active` class. Nav uses `.nav-tabs-row` wrapper with hamburger menu toggle on mobile.
+- **JS** (lines ~410–end): Vanilla JS, no frameworks. Key sections:
   - `CRITERIA` array: 6 assessment criteria with level-based observation tags (level 1–4)
   - Normalized data model: `state.groups`, `state.teams`, `state.students` as separate entities
   - `DEFAULT_GROUPS/TEAMS/STUDENTS` (empty) and `DEMO_GROUPS/TEAMS/STUDENTS` for test data
-  - Helper functions: `getGroup()`, `getTeamById()`, `getGroupTeams()`, `buildGroupsLookup()`, `formatGroupDatetime()`, `parseDatetimeString()`, `getGroupTimeSlots()`, `getAllTimeSlots()`, `isBreakSlot()`
+  - Helper functions: `getGroup()`, `getTeamById()`, `getGroupTeams()`, `buildGroupsLookup()`, `formatGroupDatetime()`, `parseDatetimeString()`, `getGroupTimeSlots()`, `getAllTimeSlots()`, `isBreakSlot()`, `renderCalSlot()`, `toggleMenu()`
   - State management: single `state` object with `groups`, `teams`, `students`, `scores`, `notes`, `duoMode`, `slots`
   - Migration: `migrateState()` auto-converts old denormalized student format
   - Persistence: `localStorage` under key `promef_state`, auto-saved on every change
@@ -55,7 +55,8 @@ state.slots:    { teamKey: "HH:MM" }
 - **Observation tags**: level-based chips (1=Onder red, 2=Op orange, 3=Boven green, 4=Excellent purple). Click to assign to a student via picker popup, or drag onto a student's note field.
 - **Notes**: free text per student per criterion. Tag markers (`✓ tagText`) can appear anywhere in the text — matching uses `includes`, so users can add context before/after tags. Feedback view parses `✓ ` prefixed lines separately.
 - **Groups**: user-defined, each with name, assessors, date (calendar picker), start/end time, configurable slot duration (multiples of 15 min, default 30), and break slots.
-- **Calendar**: time slots dynamically generated per group from start/end time and slot duration. Dashboard shows union of all group slots. Empty slots are clickable to add breaks. Breaks shown as dimmed cells with remove button.
+- **Calendar**: time slots dynamically generated per group from start/end time and slot duration. Dashboard shows union of all group slots (desktop) or stacked per group (mobile ≤768px). Empty slots are clickable to add breaks. Breaks shown as dimmed cells with remove button.
+- **Responsive**: hamburger menu on ≤768px replaces inline tabs with a dropdown. Calendar renders one grid per group on mobile. Resize listener re-renders dashboard when crossing breakpoint. All interactive elements meet 44px minimum touch target.
 
 ## Constraints
 

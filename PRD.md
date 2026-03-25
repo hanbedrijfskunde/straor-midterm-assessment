@@ -117,8 +117,8 @@ Tags zijn gegroepeerd per scoreniveau (Onder/Op/Boven/Excellent) met bijbehorend
 - **Single HTML file**: geen server, geen dependencies, geen build step
 - **Offline**: werkt volledig zonder internet (na eerste keer openen)
 - **localStorage**: alle data persistent opgeslagen in browser
-- **Responsive**: geoptimaliseerd voor laptop, bruikbaar op tablet
-- **Klik-first**: grote knoppen (min 44px), duidelijke hover/focus states, keyboard shortcuts voor power-users
+- **Responsive**: geoptimaliseerd voor laptop, bruikbaar op tablet en mobiel. Media queries op 768px (tablet) en 480px (phone). Hamburger-menu navigatie op ≤768px. Kalender stapelt groepen verticaal op mobiel. Modals als bottom-sheet op kleine schermen. Tabellen horizontaal scrollbaar.
+- **Klik-first**: grote knoppen (min 44px via `--touch-min`), duidelijke hover/focus states, keyboard shortcuts voor power-users
 - **Snel**: pagina laadt instant, geen loading states
 - **Donkere/lichte modus**: om schermafleiding te minimaliseren
 - **Geen spraak-API nodig**: invoer via klikken en optioneel tekstveld
